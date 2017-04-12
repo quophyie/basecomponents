@@ -19,10 +19,10 @@ import org.springframework.stereotype.Component;
 public class NullSkippingOrikaBeanMapper extends OrikaBeanMapper {
 
 
-  private boolean mapNulls = true;
-  public NullSkippingOrikaBeanMapper(/*@Value("${app.orikamapper.map-nulls}")*/ final Boolean mapNulls) {
+  private boolean mapNulls = false;
+  public NullSkippingOrikaBeanMapper(/*@Value("${app.orikamapper.map-nulls}") final Boolean mapNulls */) {
     super();
-    this.mapNulls = mapNulls;
+   // this.mapNulls = mapNulls;
   }
 
   /**
