@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * @author quophyie
  *
  */
-//@Component
+@Component
 public class NullSkippingOrikaBeanMapper extends OrikaBeanMapper {
 
 

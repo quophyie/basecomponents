@@ -29,7 +29,7 @@ import java.util.Map;
  * @author dlizarra
  *
  */
-//@Component
+@Component
 public class OrikaBeanMapper extends ConfigurableMapper implements ApplicationContextAware {
 
   private MapperFactory factory;
