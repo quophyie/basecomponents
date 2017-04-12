@@ -20,13 +20,13 @@
 
 	<dependencies>
 
-		<!-- Orika object to object mapper-->
+		<!-- Orika object to object mapper -->
 		<dependency>
 			<groupId>ma.glasnost.orika</groupId>
 			<artifactId>orika-core</artifactId>
 			<version>RELEASE</version><!-- or latest version -->
 		</dependency>
-		<!-- End of Orika object to object mapper-->
+		<!-- End of Orika object to object mapper -->
 
 	</dependencies>
 
