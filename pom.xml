@@ -24,7 +24,7 @@
 		<dependency>
 			<groupId>ma.glasnost.orika</groupId>
 			<artifactId>orika-core</artifactId>
-			<version>RELEASE</version><!-- or latest version -->
+			<version>LATEST</version><!-- or latest version -->
 		</dependency>
 		<!-- End of Orika object to object mapper -->
 
