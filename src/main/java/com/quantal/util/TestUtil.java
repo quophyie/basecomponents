@@ -1,4 +1,4 @@
-package com.quantal.basecomponents.util;
+package com.quantal.util;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quantal.basecomponents.dto.ResponseDto;
