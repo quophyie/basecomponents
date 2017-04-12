@@ -1,0 +1,6 @@
+test:
+  override:
+    - mvn deploy -Prun-its -s settings.xml
+dependencies:
+  override:
+    - mvn dependency:resolve -s settings.xml
