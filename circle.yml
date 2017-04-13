@@ -6,3 +6,9 @@ test:
 dependencies:
   override:
     - mvn dependency:resolve -s settings.xml
+deployment:
+  master:
+    branch: master
+    commands:
+        - curl -f -X POST https://circleci.com/api/v1.1/project/github/quophyie/microservicebasepom?circle-token=$CIRCLECI_API_TOKEN
+        - curl -f -X POST https://circleci.com/api/v1.1/project/github/quophyie/quantaljavamicroservicetemplate?circle-token=$CIRCLECI_API_TOKEN
