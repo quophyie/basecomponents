@@ -1,5 +1,7 @@
 package com.quantal.basecomponents.dto;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.quantal.basecomponents.jsonviews.DefaultJsonView;
 import lombok.Data;
 
 /**
@@ -7,7 +9,10 @@ import lombok.Data;
  */
 @Data
 public class ResponseMessageDto {
+
+  @JsonView(DefaultJsonView.ResponseMessageDtoView.class)
   private String message;
+  @JsonView(DefaultJsonView.ResponseMessageDtoView.class)
   private int code;
 
   public ResponseMessageDto(){}
