@@ -10,7 +10,6 @@ import java.util.Locale;
 /**
  * Created by dman on 29/03/2017.
  */
-@Service
 public class MessageServiceImpl implements MessageService {
 
     MessageSource messageSource;
