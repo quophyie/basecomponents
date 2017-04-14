@@ -1,4 +1,4 @@
-package com.quantal.sharedcomponents.jsonviews;
+package com.quantal.shared.jsonviews;
 
 /**
  * Created by dman on 14/04/2017.

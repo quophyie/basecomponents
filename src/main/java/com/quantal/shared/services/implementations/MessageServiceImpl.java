@@ -1,6 +1,6 @@
-package com.quantal.sharedcomponents.services.implementations;
+package com.quantal.shared.services.implementations;
 
-import com.quantal.sharedcomponents.services.interfaces.MessageService;
+import com.quantal.shared.services.interfaces.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 

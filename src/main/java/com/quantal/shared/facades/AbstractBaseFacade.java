@@ -1,8 +1,8 @@
-package com.quantal.sharedcomponents.facades;
+package com.quantal.shared.facades;
 
 
-import com.quantal.sharedcomponents.dto.ResponseDto;
-import com.quantal.sharedcomponents.objectmapper.OrikaBeanMapper;
+import com.quantal.shared.dto.ResponseDto;
+import com.quantal.shared.objectmapper.OrikaBeanMapper;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -128,7 +128,7 @@ public abstract class AbstractBaseFacade {
   }
 
   /**
-   * Maps a model to a DTO given an instance of the com.quantal.sharedcomponents.dto
+   * Maps a model to a DTO given an instance of the com.quantal.shared.dto
    * @param source - the source model to map from i.e. The DTO
    * @param <TDTO> - The type of the source object i.e. the DTO
    * @param <TModel> - The type of the model

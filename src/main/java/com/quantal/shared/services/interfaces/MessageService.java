@@ -1,4 +1,4 @@
-package com.quantal.sharedcomponents.services.interfaces;
+package com.quantal.shared.services.interfaces;
 
 import java.util.Locale;
 

@@ -1,7 +1,7 @@
-package com.quantal.sharedcomponents.util;
+package com.quantal.shared.util;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.quantal.sharedcomponents.dto.ResponseDto;
+import com.quantal.shared.dto.ResponseDto;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
