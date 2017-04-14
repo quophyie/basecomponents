@@ -1,12 +1,10 @@
-package com.quantal.basecomponents.objectmapper;
+package com.quantal.sharedcomponents.objectmapper;
 
 /**
  * Created by dman on 08/03/2017.
  */
 
 import ma.glasnost.orika.impl.DefaultMapperFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 /**
  * Orika mapper exposed as a Spring Bean. This mapper will not map nulls

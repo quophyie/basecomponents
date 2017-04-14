@@ -1,7 +1,7 @@
-package com.quantal.basecomponents.dto;
+package com.quantal.sharedcomponents.dto;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.quantal.basecomponents.jsonviews.DefaultJsonView;
+import com.quantal.sharedcomponents.jsonviews.DefaultJsonView;
 import lombok.Data;
 
 /**

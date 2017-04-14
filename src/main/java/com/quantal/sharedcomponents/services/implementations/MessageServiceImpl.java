@@ -1,9 +1,8 @@
-package com.quantal.basecomponents.services.implementations;
+package com.quantal.sharedcomponents.services.implementations;
 
-import com.quantal.basecomponents.services.interfaces.MessageService;
+import com.quantal.sharedcomponents.services.interfaces.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 

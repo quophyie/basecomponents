@@ -1,4 +1,4 @@
-package com.quantal.basecomponents.objectmapper;
+package com.quantal.sharedcomponents.objectmapper;
 
 /**
  * Created by dman on 08/03/2017.
