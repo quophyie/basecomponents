@@ -45,7 +45,7 @@ public class AbstractRepositoryService<ModelT, KeyT extends Serializable> implem
 
     @Override
     public ModelT saveOrUpdate(ModelT model) {
-        return null;
+        return repository.save(model);
     }
 
     @Override
