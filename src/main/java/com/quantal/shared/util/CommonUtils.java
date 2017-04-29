@@ -20,7 +20,7 @@ public class CommonUtils {
      * @param <T> - The return type of the retult
      * @return
      */
-    private <T> T getResultOrThrowException(Object result) {
+    public static <T> T getResultOrThrowException(Object result) {
         if (result instanceof CompletableFuture &&  ((CompletableFuture)result).isCompletedExceptionally()) {
             try {
                 ((CompletableFuture)result).get();
