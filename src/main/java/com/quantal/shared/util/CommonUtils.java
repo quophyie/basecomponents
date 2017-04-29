@@ -13,7 +13,7 @@ public class CommonUtils {
      * or throws an exception if the completion stage (CompletableFuture)
      * finished exceptionally
      * This method is best used as the outer handler method for handle or whenComplete methods
-     * in CompletableFuture chains where there is nested call to method that returns a completation
+     * in CompletableFuture chains where there is nested call to method that returns a completion
      * stage (CompletableFuture) which may have thrown an exception
      * NOTE: ****This method is meant to be used with a completion Stage (CompletableFuture)***
      * @param result - The result or exception thrown by the previous completion stage
@@ -49,5 +49,44 @@ public class CommonUtils {
         } else {
             return (T) throwable.getCause();
         }
+    }
+
+    /**
+     * A generic handler to be passed to CompletableFuture.handle callback method
+     * Returns the result  of a completion stage (ie. a completable future)
+     * or throws an exception if the completion stage (CompletableFuture)
+     * finished exceptionally
+     * This method is best used as the outer handler method for handle method
+     * in CompletableFuture chains where there is nested call to method that returns a completion
+     * stage (CompletableFuture) which may have thrown an exception
+     * NOTE: ****This method is meant to be used with a completion Stage (CompletableFuture)***
+     * @param result
+     * @param exception
+     * @param <T>
+     * @return
+     */
+    public static <T> T processHandle(T result, Throwable exception){
+        Object res = result;
+        if (exception != null) {
+            res = exception;
+        }
+        return CommonUtils.getResultOrThrowException((res));
+    }
+
+    /**
+     * A generic handler to be passed to CompletableFuture.whenComplete callback method
+     * Returns the result  of a completion stage (ie. a completable future)
+     * or throws an exception if the completion stage (CompletableFuture)
+     * finished exceptionally
+     * This method is best used as the outer handler method for handle method
+     * in CompletableFuture chains where there is nested call to a method that returns a completion
+     * stage (CompletableFuture) which may have thrown an exception
+     * NOTE: ****This method is meant to be used with a completion Stage (CompletableFuture)***
+     * @param result
+     * @param exception
+     * @param <T>
+     */
+    public static <T> void processWhenComplete(T result, Throwable exception){
+         CommonUtils.processHandle(result, exception);
     }
 }
