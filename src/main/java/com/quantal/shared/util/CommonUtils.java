@@ -21,8 +21,11 @@ public class CommonUtils {
      * @return
      */
     public static <T> T getResultOrThrowException(Object result) {
-        if (result instanceof CompletableFuture &&  ((CompletableFuture)result).isCompletedExceptionally()) {
+        if ((result instanceof CompletableFuture &&  ((CompletableFuture)result).isCompletedExceptionally())
+                || result instanceof Throwable) {
             try {
+                if (result instanceof Throwable)
+                    throw new RuntimeException(((Throwable)result).getCause());
                 ((CompletableFuture)result).get();
             } catch (InterruptedException | ExecutionException e ) {
                 throw new RuntimeException(e);
