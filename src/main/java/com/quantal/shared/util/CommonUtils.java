@@ -42,10 +42,10 @@ public class CommonUtils {
      * @param <T> the type param representing the type of the BusinessException
      * @return the business exception
      */
-    public static <T> T extractBusinessExceptionFromRuntimeException(Throwable throwable) {
+    public static <T> T extractBusinessException(Throwable throwable) {
         if (throwable.getCause().getClass() == java.util.concurrent.ExecutionException.class ||
                 throwable.getCause().getClass() == java.lang.RuntimeException.class) {
-            return extractBusinessExceptionFromRuntimeException(throwable.getCause());
+            return extractBusinessException(throwable.getCause());
         } else {
             return (T) throwable.getCause();
         }
