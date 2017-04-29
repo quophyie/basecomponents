@@ -43,12 +43,16 @@ public class CommonUtils {
      * @return the business exception
      */
     public static <T> T extractBusinessException(Throwable throwable) {
-        if (throwable.getCause().getClass() == java.util.concurrent.ExecutionException.class ||
-                throwable.getCause().getClass() == java.lang.RuntimeException.class) {
-            return extractBusinessException(throwable.getCause());
-        } else {
-            return (T) throwable.getCause();
+        Throwable cause = throwable.getCause();
+        if (cause != null) {
+            if (cause.getClass() == java.util.concurrent.ExecutionException.class ||
+                    cause.getClass() == java.lang.RuntimeException.class) {
+                return extractBusinessException(throwable.getCause());
+            } else {
+                return (T) throwable.getCause();
+            }
         }
+        return (T)throwable;
     }
 
     /**
