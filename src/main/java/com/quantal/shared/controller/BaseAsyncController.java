@@ -10,22 +10,27 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Created by dman on 02/05/2017.
  */
-public abstract class BaseAsyncController {
+public abstract class BaseControllerAsync {
 
-    protected <T> ResponseEntity applyJsonViewA(ResponseEntity entity, Class jsonView, ObjectMapper mapper) throws IOException {
+    protected <T> ResponseEntity applyJsonView(ResponseEntity entity, Class jsonView, ObjectMapper mapper) {
 
-        T entityBody = (T)entity.getBody();
-        String jsonString = CommonUtils.convertObjectToJsonStringUsingView(entityBody, jsonView, mapper);
-        ResponseEntity newResponseEntity = new ResponseEntity(jsonString, entity.getHeaders(), entity.getStatusCode());
+        ResponseEntity newResponseEntity = null;
+        try {
+            T entityBody = (T)entity.getBody();
+            String jsonString = null;
+            jsonString = CommonUtils.convertObjectToJsonStringUsingView(entityBody, jsonView, mapper);
+             newResponseEntity = new ResponseEntity(jsonString, entity.getHeaders(), entity.getStatusCode());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         return newResponseEntity;
     }
 
-    protected <T> CompletableFuture<ResponseEntity> applyJsonViewAsync(ResponseEntity entity, Class jsonView, ObjectMapper mapper) throws IOException {
+    protected <T> CompletableFuture<ResponseEntity> applyJsonViewAsync(ResponseEntity entity, Class jsonView, ObjectMapper mapper) {
 
-        T entityBody = (T)entity.getBody();
-        String jsonString = CommonUtils.convertObjectToJsonStringUsingView(entityBody, jsonView, mapper);
-        ResponseEntity newResponseEntity = new ResponseEntity(jsonString, entity.getHeaders(), entity.getStatusCode());
+        ResponseEntity newResponseEntity = applyJsonView(entity, jsonView, mapper);
 
         return CompletableFuture.completedFuture(newResponseEntity);
     }
