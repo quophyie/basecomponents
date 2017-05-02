@@ -1,5 +1,9 @@
 package com.quantal.shared.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -93,4 +97,23 @@ public class CommonUtils {
     public static <T> void processWhenComplete(T result, Throwable exception){
          CommonUtils.processHandle(result, exception);
     }
+
+    /**
+     * Converts the given object to a Json string
+     * @param object - The object to convert
+     * @return
+     * @throws IOException
+     */
+    public static String convertObjectToJsonStringUsingView(Object object, Class jsonView, ObjectMapper mapper) throws IOException {
+
+        if (mapper == null) {
+            mapper = new ObjectMapper();
+        }
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        if (jsonView != null)
+            return mapper.writeValueAsString(object);
+        return mapper.writerWithView(jsonView).writeValueAsString(object);
+    }
+
 }
