@@ -109,11 +109,11 @@ public class CommonUtils {
         if (mapper == null) {
             mapper = new ObjectMapper();
         }
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+       // mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
         if (jsonView != null)
-            return mapper.writeValueAsString(object);
-        return mapper.writerWithView(jsonView).writeValueAsString(object);
+            return mapper.writerWithView(jsonView).writeValueAsString(object);
+        return mapper.writeValueAsString(object);
     }
 
 }
