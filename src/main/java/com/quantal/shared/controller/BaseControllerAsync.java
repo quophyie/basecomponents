@@ -23,8 +23,6 @@ public abstract class BaseControllerAsync {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
         return newResponseEntity;
     }
 
