@@ -42,6 +42,7 @@ public class CommonUtils {
     /**
      * Extracts A business Exception from an exception that is either of type
      * {@see java.util.concurrent.ExecutionException} or {@see java.lang.RuntimeException}
+     * or {java.util.concurrent.CompletionException.class} or {java.util.concurrent.CancellationException.class}
      * @param throwable  - the throwable to inspect
      * @param <T> the type param representing the type of the BusinessException
      * @return the business exception
@@ -59,6 +60,25 @@ public class CommonUtils {
             }
         }
         return (T)throwable;
+    }
+
+    /**
+     * Extracts A business Exception from an exception that is either of type
+     * {@see java.util.concurrent.ExecutionException} or {@see java.lang.RuntimeException}
+     * or {java.util.concurrent.CompletionException.class} or {java.util.concurrent.CancellationException.class}
+     * checked exception and returns the Exception as RuntimeException
+     * @param throwable  - the throwable to inspect
+     * @return the business exception
+     */
+    public static RuntimeException extractBusinessExceptionAsRuntimeException(Throwable throwable) {
+        Throwable cause =  extractBusinessException(throwable.getCause());
+
+        if (!(cause instanceof RuntimeException)){
+           cause = new RuntimeException(cause.getMessage(), cause);
+        }
+
+        return  (RuntimeException) cause;
+
     }
 
     /**
