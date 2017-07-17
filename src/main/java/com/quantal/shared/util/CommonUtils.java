@@ -50,7 +50,9 @@ public class CommonUtils {
         Throwable cause = throwable.getCause();
         if (cause != null) {
             if (cause.getClass() == java.util.concurrent.ExecutionException.class ||
-                    cause.getClass() == java.lang.RuntimeException.class) {
+                    cause.getClass() == java.lang.RuntimeException.class
+                    || cause.getClass() == java.util.concurrent.CompletionException.class
+                    || cause.getClass() == java.util.concurrent.CancellationException.class) {
                 return extractBusinessException(throwable.getCause());
             } else {
                 return (T) throwable.getCause();
