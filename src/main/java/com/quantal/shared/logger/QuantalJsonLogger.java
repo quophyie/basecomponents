@@ -41,6 +41,21 @@ public class QuantalJsonLogger extends XLogger {
     }
 
     @Override
+    public void trace(String format, Object arg){
+        this.trace(format, arg);
+    }
+
+    @Override
+    public void trace(String format, Object arg1, Object arg2) {
+        this.trace(format, arg1, arg2);
+    }
+
+    @Override
+    public void trace(String msg, Throwable t){
+        this.trace(msg, t);
+    }
+
+    @Override
     public void debug(String message, Object... args){
 
         JsonLogger log = logger.debug()
@@ -59,10 +74,42 @@ public class QuantalJsonLogger extends XLogger {
     }
 
     @Override
+    public void debug(String format, Object arg){
+        this.debug(format, arg);
+    }
+
+    @Override
+    public void debug(String format, Object arg1, Object arg2) {
+        this.debug(format, arg1, arg2);
+    }
+
+    @Override
+    public void debug(String msg, Throwable t){
+        this.debug(msg, t);
+    }
+
+
+
+    @Override
     public void info(String message, Object... args){
         JsonLogger log = logger.info()
                 .message(message);
         toJson(log, args);
+    }
+
+    @Override
+    public void info(String format, Object arg){
+        this.info(format, arg);
+    }
+
+    @Override
+    public void info(String format, Object arg1, Object arg2) {
+        this.info(format, arg1, arg2);
+    }
+
+    @Override
+    public void info(String msg, Throwable t){
+        this.info(msg, t);
     }
 
     @Override
@@ -87,6 +134,21 @@ public class QuantalJsonLogger extends XLogger {
     }
 
     @Override
+    public void warn(String format, Object arg){
+        this.warn(format, arg);
+    }
+
+    @Override
+    public void warn(String format, Object arg1, Object arg2) {
+        this.warn(format, arg1, arg2);
+    }
+
+    @Override
+    public void warn(String msg, Throwable t){
+        this.warn(msg, t);
+    }
+
+    @Override
     public void error(String message, Object... args){
         JsonLogger log = logger.error()
                 .message(message);
@@ -98,6 +160,21 @@ public class QuantalJsonLogger extends XLogger {
         JsonLogger log = logger.error()
                 .message(message);
         toJson(log);
+    }
+
+    @Override
+    public void error(String format, Object arg){
+        this.error(format, arg);
+    }
+
+    @Override
+    public void error(String format, Object arg1, Object arg2) {
+        this.error(format, arg1, arg2);
+    }
+
+    @Override
+    public void error(String msg, Throwable t){
+        this.error(msg, t);
     }
 
 
