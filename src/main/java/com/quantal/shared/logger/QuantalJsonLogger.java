@@ -42,17 +42,17 @@ public class QuantalJsonLogger extends XLogger {
 
     @Override
     public void trace(String format, Object arg){
-        this.trace(format, arg);
+        this.trace(format, new Object[]{arg});
     }
 
     @Override
     public void trace(String format, Object arg1, Object arg2) {
-        this.trace(format, arg1, arg2);
+        this.trace(format, new Object[]{arg1, arg2});
     }
 
     @Override
     public void trace(String msg, Throwable t){
-        this.trace(msg, t);
+        this.trace(msg, new Object[]{t});
     }
 
     @Override
@@ -75,17 +75,17 @@ public class QuantalJsonLogger extends XLogger {
 
     @Override
     public void debug(String format, Object arg){
-        this.debug(format, arg);
+        this.debug(format, new Object[]{arg});
     }
 
     @Override
     public void debug(String format, Object arg1, Object arg2) {
-        this.debug(format, arg1, arg2);
+        this.debug(format, new Object[]{arg1, arg2});
     }
 
     @Override
     public void debug(String msg, Throwable t){
-        this.debug(msg, t);
+        this.debug(msg, new Object[]{t});
     }
 
 
@@ -99,17 +99,17 @@ public class QuantalJsonLogger extends XLogger {
 
     @Override
     public void info(String format, Object arg){
-        this.info(format, arg);
+        this.info(format, new Object[]{arg});
     }
 
     @Override
     public void info(String format, Object arg1, Object arg2) {
-        this.info(format, arg1, arg2);
+        this.info(format, new Object[]{arg1, arg2});
     }
 
     @Override
     public void info(String msg, Throwable t){
-        this.info(msg, t);
+        this.info(msg, new Object[]{t});
     }
 
     @Override
@@ -135,17 +135,17 @@ public class QuantalJsonLogger extends XLogger {
 
     @Override
     public void warn(String format, Object arg){
-        this.warn(format, arg);
+        this.warn(format, new Object[]{arg});
     }
 
     @Override
     public void warn(String format, Object arg1, Object arg2) {
-        this.warn(format, arg1, arg2);
+        this.warn(format, new Object[]{arg1, arg2});
     }
 
     @Override
     public void warn(String msg, Throwable t){
-        this.warn(msg, t);
+        this.warn(msg, new Object[]{t});
     }
 
     @Override
@@ -164,17 +164,17 @@ public class QuantalJsonLogger extends XLogger {
 
     @Override
     public void error(String format, Object arg){
-        this.error(format, arg);
+        this.error(format, new Object[]{arg});
     }
 
     @Override
     public void error(String format, Object arg1, Object arg2) {
-        this.error(format, arg1, arg2);
+        this.error(format, new Object[]{arg1, arg2});
     }
 
     @Override
     public void error(String msg, Throwable t){
-        this.error(msg, t);
+        this.error(msg, new Object[]{t});
     }
 
 
