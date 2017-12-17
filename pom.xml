@@ -11,6 +11,9 @@
 	<name>shared</name>
 	<description>Quantal Java Shared, Services Components and Utils</description>
 
+	<properties>
+		<godaddy.logging.version>1.2.3</godaddy.logging.version>
+	</properties>
 	<parent>
 		<groupId>com.github.quophyie</groupId>
 		<artifactId>base-pom</artifactId>
@@ -20,6 +23,11 @@
 
 	<dependencies>
 
+		<dependency>
+			<groupId>com.godaddy</groupId>
+			<artifactId>logging</artifactId>
+			<version>${godaddy.logging.version}</version>
+		</dependency>
 		<!-- Orika object to object mapper -->
 		<dependency>
 			<groupId>ma.glasnost.orika</groupId>
