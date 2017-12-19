@@ -394,8 +394,8 @@ public void info(String msg) {
     }
 
     private void checkAndMaybeThrowEeventNotSuppliedException(String methodName, List<Object> arguments){
-        if (arguments !=null && !arguments.isEmpty()) {
-            Object event = Arrays.asList(arguments).stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
+        if (arguments !=null) {
+            Object event = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
 
 
             if (!this.hasEvent || event == null){
