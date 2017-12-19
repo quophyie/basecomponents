@@ -3,7 +3,6 @@ package com.quantal.shared.logger;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggingConfigs;
 import com.quantal.shared.dto.CommonLogFields;
-import com.quantal.shared.dto.LogEvent;
 
 /**
  * Created by dman on 24/07/2017.
@@ -11,36 +10,20 @@ import com.quantal.shared.dto.LogEvent;
 public class QuantalGoDaddyLoggerFactory {
 
 
-    /**
-     *     private String proglang;
-     private String framework;
-     private String frameworkVersion;
-     private String name;
-     private String hostname;
-     private String moduleVersion;
-     private String lang;
-     private String time;
-     * @param clazz
-     * @param commonLogFields
-     * @return
-     */
-    public static Logger getLogger(Class<?> clazz, CommonLogFields commonLogFields) {
+    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields) {
         Logger logger =  LoggingConfigs.getCurrent().getDefaultLogger(clazz);
-        return standardizeLogLine(logger, commonLogFields);
+        logger = standardizeLogLine(logger, commonLogFields);
+        QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, LoggingConfigs.getCurrent());
+        return quantalGoDaddyLogger;
     }
 
-    public static Logger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs) {
+    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs) {
         Logger logger =  configs.getConfiguredLogger(clazz, configs);
-        return standardizeLogLine(logger, commonLogFields);
+        logger = standardizeLogLine(logger, commonLogFields);
+        QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, LoggingConfigs.getCurrent());
+        return quantalGoDaddyLogger;
     }
 
-    public static Logger getLogger(Class<?> clazz) {
-        return LoggingConfigs.getCurrent().getDefaultLogger(clazz);
-    }
-
-    public static Logger getLogger(Class<?> clazz, LoggingConfigs configs) {
-        return configs.getConfiguredLogger(clazz, configs);
-    }
 
     private static Logger standardizeLogLine(Logger logger, CommonLogFields logLineEvent){
         return logger

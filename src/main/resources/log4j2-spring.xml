@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration monitorInterval="60">
+    <Properties>
+        <Property name="log-path">/var/log</Property>
+        <!--<Property scope="context" name="springAppName" source="spring.application.name"/>-->
+        <Property name="springAppName">${spring.application.name}</Property>
+        <!-- Example for logging into the build folder of your project -->
+        <Property name="LOG_FILE" value="${BUILD_FOLDER:-build}/${springAppName}"/>​
+
+        <Property name="CONSOLE_LOG_PATTERN"
+                  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr([${springAppName:-},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-B3-ParentSpanId:-},%X{X-Span-Export:-}]){yellow} %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+    </Properties>
+    <Appenders>
+        <Console name="Console-Appender" target="SYSTEM_OUT">
+            <PatternLayout>
+                <!--<pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [traceId=%X{traceId}] %c{1} - %msg%n
+                </pattern>-->
+                <!--<pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [traceId=%X{traceId}] %c{1} [${springAppName:-},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-B3-ParentSpanId:-},%X{X-Span-Export:-}]]- %msg%n
+                </pattern>-->
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [traceId=%X{traceId}] %c{1} [%X{X-B3-TraceId},%X{X-B3-SpanId},%X{X-B3-ParentSpanId},%X{X-Span-Export}]- %msg%n
+                </pattern>
+                <!--<pattern>
+                    %msg%n
+                </pattern>-->
+                <!--<pattern>${CONSOLE_LOG_PATTERN}</pattern>-->
+            </PatternLayout>
+        </Console>
+        <File name="App-File-Appender" fileName="${log-path}/app_log.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [traceId=%X{traceId}] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+            <JsonLayout compact="true" eventEol="true"/>
+        </File>
+        <File name="Json-File-Appender" fileName="${log-path}/app_log.json" >
+            <!--<JsonLayout compact="true" eventEol="true"/>-->
+            <JSONLayout compact="true" eventEol="true"/>
+        </File>
+        <File name="SpringBoot-File-Appender" fileName="${log-path}/springboot_log.log" >
+            <PatternLayout>
+                <pattern>
+                    [%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [traceId=%X{traceId}] %c{1} - %msg%n
+                </pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.springframework.web" level="info" additivity="false">
+            <AppenderRef ref="SpringBoot-File-Appender"/>
+            <AppenderRef ref="Console-Appender"/>
+        </Logger>
+        <Logger name="com.quantal.exchange.users" level="debug" additivity="false">
+            <AppenderRef ref="App-File-Appender"/>
+            <AppenderRef ref="Json-File-Appender"/>
+            <AppenderRef ref="Console-Appender"/>
+        </Logger>
+        <Root>
+            <AppenderRef ref="Console-Appender"/>
+        </Root>
+    </Loggers>
+</Configuration>

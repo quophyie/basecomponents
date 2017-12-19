@@ -6,6 +6,8 @@ import lombok.Data;
 @AllArgsConstructor
 @Data
 public class CommonLogFields {
+
+        public CommonLogFields(){}
         //private String event;
         //private String msg;
         private String proglang;
