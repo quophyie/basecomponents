@@ -398,7 +398,7 @@ public void info(String msg) {
             Object event = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
 
 
-            if (!this.hasEvent || event == null){
+            if (!this.hasEvent && event == null){
                 throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
             }
             if(event!=null) {
