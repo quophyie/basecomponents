@@ -32,6 +32,9 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalGoDad
 
     @Override
     public Logger with(Object obj) {
+        if(obj instanceof LogEvent && !StringUtils.isEmpty(((LogEvent) obj).getEvent())){
+            this.hasEvent = true;
+        }
         return new AnnotatingLogger(root, this, obj, configs);
     }
 
@@ -408,6 +411,12 @@ public void info(String msg) {
 
         else if(!this.hasEvent) {
             throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
+        }
+    }
+
+    class LoggerImpl2 extends LoggerImpl{
+        public LoggerImpl2(Logger root, LoggingConfigs configs) {
+            super(root, configs);
         }
     }
 }

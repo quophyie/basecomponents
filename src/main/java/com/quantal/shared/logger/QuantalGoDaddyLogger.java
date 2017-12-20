@@ -4,13 +4,9 @@ import com.godaddy.logging.Logger;
 
 public interface QuantalGoDaddyLogger extends Logger {
 
-    default void throwing(Throwable t) {
+    default Throwable throwing(Throwable t) {
         this.error(t.getMessage(),t);
-        try {
-            throw t;
-        } catch (Throwable throwable) {
-            throw new RuntimeException(throwable);
-        }
+          return t;
     }
 
 }
