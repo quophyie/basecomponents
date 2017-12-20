@@ -6,7 +6,7 @@ public interface QuantalGoDaddyLogger extends Logger {
 
     default Throwable throwing(Throwable t) {
         this.error(t.getMessage(),t);
-          return t;
+          return new RuntimeException(t);
     }
 
 }
