@@ -2,6 +2,8 @@ package com.quantal.shared.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quantal.shared.util.CommonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public abstract class BaseControllerAsync {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     protected <T> ResponseEntity applyJsonView(ResponseEntity entity, Class jsonView, ObjectMapper mapper) {
 
         ResponseEntity newResponseEntity = null;
@@ -21,7 +24,7 @@ public abstract class BaseControllerAsync {
             jsonString = CommonUtils.convertObjectToJsonStringUsingView(entityBody, jsonView, mapper);
              newResponseEntity = new ResponseEntity(jsonString, entity.getHeaders(), entity.getStatusCode());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
         }
         return newResponseEntity;
     }

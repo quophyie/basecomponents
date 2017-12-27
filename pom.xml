@@ -13,6 +13,7 @@
 
 	<properties>
 		<godaddy.logging.version>1.2.3</godaddy.logging.version>
+		<logstash.version>4.5.1</logstash.version>
 	</properties>
 	<parent>
 		<groupId>com.github.quophyie</groupId>
@@ -28,27 +29,24 @@
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j2</artifactId>
-		</dependency>
 
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.1.9</version>
-		</dependency>
 		<dependency>
 			<groupId>com.godaddy</groupId>
 			<artifactId>logging</artifactId>
 			<version>${godaddy.logging.version}</version>
 		</dependency>
-		<!-- Orika object to object mapper -->
 		<dependency>
-			<groupId>ma.glasnost.orika</groupId>
-			<artifactId>orika-core</artifactId>
-			<version>LATEST</version><!-- or latest version -->
-		</dependency>
+			<groupId>io.logz.sender</groupId>
+			<artifactId>logzio-sender</artifactId>
+			<version>1.0.7</version>
+	</dependency>
+
+	<!-- Orika object to object mapper -->
+	<dependency>
+		<groupId>ma.glasnost.orika</groupId>
+		<artifactId>orika-core</artifactId>
+		<version>LATEST</version><!-- or latest version -->
+	</dependency>
 		<!-- End of Orika object to object mapper -->
 
 		<dependency>

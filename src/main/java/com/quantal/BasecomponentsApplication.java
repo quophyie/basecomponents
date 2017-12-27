@@ -11,10 +11,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class BasecomponentsApplication {
 
 	public static void main(String[] args) throws Throwable {
+
+		//Uncommment to run
+		SpringApplication.run(BasecomponentsApplication.class, args);
 		QuantalGoDaddyLogger logger = QuantalGoDaddyLoggerFactory.getLogger(BasecomponentsApplication.class, new CommonLogFields());
 
-		((QuantalGoDaddyLogger)logger).throwing(new NullPointerException());
-		//Uncommment to run
-		//SpringApplication.run(BasecomponentsApplication.class, args);
+		logger.throwing(new NullPointerException());
+		logger.with("StringTest1").with("StringTest2").info("Some string message");
 	}
 }
