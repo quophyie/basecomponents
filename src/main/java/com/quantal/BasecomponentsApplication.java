@@ -1,9 +1,8 @@
 package com.quantal;
 
-import com.godaddy.logging.Logger;
-import com.quantal.shared.dto.CommonLogFields;
-import com.quantal.shared.logger.QuantalGoDaddyLogger;
-import com.quantal.shared.logger.QuantalGoDaddyLoggerFactory;
+import com.quantal.javashared.dto.CommonLogFields;
+import com.quantal.javashared.logger.QuantalGoDaddyLogger;
+import com.quantal.javashared.logger.QuantalGoDaddyLoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
