@@ -38,21 +38,20 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalGoDad
 
     private final String EVENT_MSG="Event not supplied. Please supply an event via the %s method or with an 'event' key in the 'with' method";
     private final String EVENT_KEY = "event";
-    private boolean bSendToLogzio;
+    private boolean bSendToLogzio = false;
     private Map<String, Object> logzioJsonDataMap = new HashMap<>();
     private JsonObject jsonMessage;
     private final Map<String, Object> commonFieldsMap;
     private CommonLogFields commonLogFields;
 
 
-    public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs, LogzioConfig logzioConfig, boolean bSendToLogzio) {
+    public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs, LogzioConfig logzioConfig) {
         super(root, configs);
         this.logzioConfig = logzioConfig;
-        this.bSendToLogzio = bSendToLogzio;
         commonFieldsMap = new HashMap<>();
 
-        if (logzioConfig == null)
-            bSendToLogzio = false;
+        if (logzioConfig != null)
+            bSendToLogzio = true;
 
         if(bSendToLogzio) {
             try {
@@ -78,7 +77,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalGoDad
     }
 
     public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs) {
-        this(root, configs, QuantalGoDaddyLoggerFactory.createDefaultLogzioConfig("LOGIO_TOKEN"),false);
+        this(root, configs, QuantalGoDaddyLoggerFactory.createDefaultLogzioConfig("LOGIO_TOKEN"));
 
     }
 

@@ -37,10 +37,7 @@ public class QuantalGoDaddyLoggerFactory {
     public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs, LogzioConfig logzioConfig) {
         Logger logger =  configs.getConfiguredLogger(clazz, configs);
         logger = standardizeLogLine(logger, commonLogFields);
-        boolean bSendToLogzIO = false;
-        if (logzioConfig != null)
-            bSendToLogzIO = true;
-        QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, configs, logzioConfig, bSendToLogzIO);
+        QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, configs, logzioConfig);
         quantalGoDaddyLogger.setCommoFields(commonLogFields);
         return quantalGoDaddyLogger;
     }
