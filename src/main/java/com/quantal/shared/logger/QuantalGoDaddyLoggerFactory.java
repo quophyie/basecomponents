@@ -29,9 +29,25 @@ public class QuantalGoDaddyLoggerFactory {
     public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs) {
         Logger logger =  configs.getConfiguredLogger(clazz, configs);
         logger = standardizeLogLine(logger, commonLogFields);
-        QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, LoggingConfigs.getCurrent());
+        QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, configs);
         quantalGoDaddyLogger.setCommoFields(commonLogFields);
         return quantalGoDaddyLogger;
+    }
+
+    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs, LogzioConfig logzioConfig) {
+        Logger logger =  configs.getConfiguredLogger(clazz, configs);
+        logger = standardizeLogLine(logger, commonLogFields);
+        boolean bSendToLogzIO = false;
+        if (logzioConfig != null)
+            bSendToLogzIO = true;
+        QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, configs, logzioConfig, bSendToLogzIO);
+        quantalGoDaddyLogger.setCommoFields(commonLogFields);
+        return quantalGoDaddyLogger;
+    }
+
+    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LogzioConfig logzioConfig) {
+
+        return getLogger(clazz, commonLogFields, LoggingConfigs.getCurrent(), logzioConfig);
     }
 
     public static LogzioConfig createDefaultLogzioConfig(String logzioToken){
