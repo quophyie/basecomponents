@@ -4,10 +4,12 @@ import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggingConfigs;
 import com.quantal.shared.dto.CommonLogFields;
 import com.quantal.shared.dto.LogzioConfig;
-import io.logz.sender.exceptions.LogzioParameterErrorException;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ReflectionUtils;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 
 /**
@@ -16,7 +18,7 @@ import java.util.concurrent.Executors;
 public class QuantalGoDaddyLoggerFactory {
 
 
-    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields) throws LogzioParameterErrorException {
+    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields) {
         Logger logger =  LoggingConfigs.getCurrent().getDefaultLogger(clazz);
         logger = standardizeLogLine(logger, commonLogFields);
         QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, LoggingConfigs.getCurrent());
@@ -24,7 +26,7 @@ public class QuantalGoDaddyLoggerFactory {
         return quantalGoDaddyLogger;
     }
 
-    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs) throws LogzioParameterErrorException {
+    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs) {
         Logger logger =  configs.getConfiguredLogger(clazz, configs);
         logger = standardizeLogLine(logger, commonLogFields);
         QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, LoggingConfigs.getCurrent());
@@ -51,7 +53,25 @@ public class QuantalGoDaddyLoggerFactory {
 
 
     private static Logger standardizeLogLine(Logger logger, CommonLogFields logLineEvent){
-        return logger
+        Logger[] flogger = new Logger[]{logger};
+        Arrays.asList(ReflectionUtils.getAllDeclaredMethods(logLineEvent.getClass()))
+                .stream()
+                .filter(method -> method.getName().startsWith("get") &&  !method.getName().equalsIgnoreCase("getClass"))
+                .forEach(method -> {
+                    try {
+                        String key = method.getName().substring(3).toLowerCase();
+                        Object value = method.invoke(logLineEvent);
+                        if(flogger[0]== null){
+                          flogger[0] = logger.with(key, value);
+                        } else {
+                            flogger[0] = flogger[0].with(key, value);
+                        }
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        logger.error(e.getMessage(), e );
+                    }
+                });
+        return  flogger[0];
+                /*logger;
                 .with("proglang", logLineEvent.getProglang())
                 .with("framework", logLineEvent.getFramework())
                 .with("frameworkVersion", logLineEvent.getFrameworkVersion())
@@ -59,7 +79,8 @@ public class QuantalGoDaddyLoggerFactory {
                 .with("hostname", logLineEvent.getHostname())
                 .with("moduleVersion", logLineEvent.getModuleVersion())
                 .with("lang", logLineEvent.getLang())
-                .with("time", logLineEvent.getTime());
+                .with("time", logLineEvent.getTime())
+                */
 
     }
 }

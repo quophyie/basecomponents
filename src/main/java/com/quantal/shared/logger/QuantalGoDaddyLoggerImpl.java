@@ -45,7 +45,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalGoDad
     private CommonLogFields commonLogFields;
 
 
-    public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs, LogzioConfig logzioConfig, boolean bSendToLogzio) throws LogzioParameterErrorException {
+    public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs, LogzioConfig logzioConfig, boolean bSendToLogzio) {
         super(root, configs);
         this.logzioConfig = logzioConfig;
         this.bSendToLogzio = bSendToLogzio;
@@ -55,24 +55,29 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalGoDad
             bSendToLogzio = false;
 
         if(bSendToLogzio) {
-            sender = LogzioSender.getOrCreateSenderByType(logzioConfig.getLogzioToken(),
-                    logzioConfig.getLogzioType(),
-                    logzioConfig.getDrainTimeout(),
-                    logzioConfig.getFsPercentThreshold(),
-                    logzioConfig.getBufferDir(),
-                    logzioConfig.getLogzioUrl(),
-                    logzioConfig.getSocketTimeout(),
-                    logzioConfig.getConnectTimeout(),
-                    logzioConfig.isDebug(),
-                    logzioConfig.getReporter(), logzioConfig.getTasksExecutor(),
-                    logzioConfig.getGcPersistedQueueFilesIntervalSeconds());
-            sender.start();
+            try {
+                sender = LogzioSender.getOrCreateSenderByType(logzioConfig.getLogzioToken(),
+                        logzioConfig.getLogzioType(),
+                        logzioConfig.getDrainTimeout(),
+                        logzioConfig.getFsPercentThreshold(),
+                        logzioConfig.getBufferDir(),
+                        logzioConfig.getLogzioUrl(),
+                        logzioConfig.getSocketTimeout(),
+                        logzioConfig.getConnectTimeout(),
+                        logzioConfig.isDebug(),
+                        logzioConfig.getReporter(), logzioConfig.getTasksExecutor(),
+                        logzioConfig.getGcPersistedQueueFilesIntervalSeconds());
+                sender.start();
+            } catch (LogzioParameterErrorException e) {
+                root.error(e.getMessage(), e);
+            }
+
         }
 
 
     }
 
-    public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs) throws LogzioParameterErrorException {
+    public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs) {
         this(root, configs, QuantalGoDaddyLoggerFactory.createDefaultLogzioConfig("LOGIO_TOKEN"),false);
 
     }
@@ -559,10 +564,8 @@ public void info(String msg) {
                         String key = method.getName().substring(3).toLowerCase();
                         Object value = method.invoke(commonLogFields);
                         commonFieldsMap.put(key, value);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
+                    } catch (IllegalAccessException | InvocationTargetException  e) {
+                       root.error(e.getMessage(), e );
                     }
                 });
     }
