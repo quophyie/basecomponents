@@ -36,10 +36,10 @@
             </PatternLayout>
             <JsonLayout compact="true" eventEol="true"/>
         </File>
-        <File name="Json-File-Appender" fileName="${log-path}/app_log.json" >
-            <!--<JsonLayout compact="true" eventEol="true"/>-->
+      <!--  <File name="Json-File-Appender" fileName="${log-path}/app_log.json" >
+            &lt;!&ndash;<JsonLayout compact="true" eventEol="true"/>&ndash;&gt;
             <JSONLayout compact="true" eventEol="true"/>
-        </File>
+        </File>-->
         <File name="SpringBoot-File-Appender" fileName="${log-path}/springboot_log.log" >
             <PatternLayout>
                 <pattern>
@@ -55,7 +55,7 @@
         </Logger>
         <Logger name="com.quantal.exchange.users" level="debug" additivity="false">
             <AppenderRef ref="App-File-Appender"/>
-            <AppenderRef ref="Json-File-Appender"/>
+            <!--<AppenderRef ref="Json-File-Appender"/>-->
             <AppenderRef ref="Console-Appender"/>
         </Logger>
         <Root>

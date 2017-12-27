@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.github.quophyie</groupId>
-	<artifactId>shared</artifactId>
+	<artifactId>javashared</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -21,25 +21,23 @@
 		<version>0.0.1-SNAPSHOT</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-
 	<dependencies>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter</artifactId>
-		</dependency>
-
-
 		<dependency>
 			<groupId>com.godaddy</groupId>
 			<artifactId>logging</artifactId>
 			<version>${godaddy.logging.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>io.logz.sender</groupId>
 			<artifactId>logzio-sender</artifactId>
 			<version>1.0.7</version>
-	</dependency>
+		</dependency>
 
 	<!-- Orika object to object mapper -->
 	<dependency>
