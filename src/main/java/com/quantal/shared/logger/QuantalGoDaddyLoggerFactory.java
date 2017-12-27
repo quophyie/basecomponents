@@ -53,7 +53,7 @@ public class QuantalGoDaddyLoggerFactory {
 
 
     private static Logger standardizeLogLine(Logger logger, CommonLogFields logLineEvent){
-        Logger[] flogger = new Logger[]{logger};
+        Logger[] finalLogger = new Logger[]{logger};
         Arrays.asList(ReflectionUtils.getAllDeclaredMethods(logLineEvent.getClass()))
                 .stream()
                 .filter(method -> method.getName().startsWith("get") &&  !method.getName().equalsIgnoreCase("getClass"))
@@ -61,26 +61,12 @@ public class QuantalGoDaddyLoggerFactory {
                     try {
                         String key = method.getName().substring(3).toLowerCase();
                         Object value = method.invoke(logLineEvent);
-                        if(flogger[0]== null){
-                          flogger[0] = logger.with(key, value);
-                        } else {
-                            flogger[0] = flogger[0].with(key, value);
-                        }
+                        finalLogger[0] = finalLogger[0].with(key, value);
                     } catch (IllegalAccessException | InvocationTargetException e) {
                         logger.error(e.getMessage(), e );
                     }
                 });
-        return  flogger[0];
-                /*logger;
-                .with("proglang", logLineEvent.getProglang())
-                .with("framework", logLineEvent.getFramework())
-                .with("frameworkVersion", logLineEvent.getFrameworkVersion())
-                .with("name", logLineEvent.getName())
-                .with("hostname", logLineEvent.getHostname())
-                .with("moduleVersion", logLineEvent.getModuleVersion())
-                .with("lang", logLineEvent.getLang())
-                .with("time", logLineEvent.getTime())
-                */
+        return  finalLogger[0];
 
     }
 }
