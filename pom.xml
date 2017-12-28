@@ -12,7 +12,6 @@
 	<description>Quantal Java Shared, Services Components and Utils</description>
 
 	<properties>
-		<godaddy.logging.version>1.2.3</godaddy.logging.version>
 		<logstash.version>4.5.1</logstash.version>
 	</properties>
 	<parent>
@@ -22,17 +21,6 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<dependencies>
-		<dependency>
-			<groupId>com.godaddy</groupId>
-			<artifactId>logging</artifactId>
-			<version>${godaddy.logging.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>ch.qos.logback</groupId>
-					<artifactId>logback-core</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 		<dependency>
 			<groupId>io.logz.sender</groupId>
 			<artifactId>logzio-sender</artifactId>
