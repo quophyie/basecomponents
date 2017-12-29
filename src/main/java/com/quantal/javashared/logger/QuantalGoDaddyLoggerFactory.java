@@ -36,7 +36,7 @@ public class QuantalGoDaddyLoggerFactory {
         return quantalGoDaddyLogger;
     }
 
-    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs, LogzioConfig logzioConfig) {
+    public static QuantalGoDaddyLogger getLogzioLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs, LogzioConfig logzioConfig) {
         Logger logger =  configs.getConfiguredLogger(clazz, configs);
         logger = standardizeLogLine(logger, commonLogFields);
         QuantalGoDaddyLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, configs, logzioConfig);
@@ -44,9 +44,9 @@ public class QuantalGoDaddyLoggerFactory {
         return quantalGoDaddyLogger;
     }
 
-    public static QuantalGoDaddyLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LogzioConfig logzioConfig) {
+    public static QuantalGoDaddyLogger getLogzioLogger(Class<?> clazz, CommonLogFields commonLogFields, LogzioConfig logzioConfig) {
 
-        return getLogger(clazz, commonLogFields, LoggingConfigs.getCurrent(), logzioConfig);
+        return getLogzioLogger(clazz, commonLogFields, LoggingConfigs.getCurrent(), logzioConfig);
     }
 
     public static LogzioConfig createDefaultLogzioConfig(String logzioToken, Optional<Boolean> showDebugInfo, Optional<ScheduledExecutorService> tasksExecutor){
