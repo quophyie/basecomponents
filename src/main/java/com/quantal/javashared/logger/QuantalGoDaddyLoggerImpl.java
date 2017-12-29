@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 /**
  * Created by dman on 19/07/2017.
  */
-public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalGoDaddyLogger {
+public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogger {
 
     protected boolean hasEvent;
     protected LogzioSender sender;
@@ -78,7 +78,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalGoDad
     }
 
     public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs) {
-        this(root, configs, QuantalGoDaddyLoggerFactory.createDefaultLogzioConfig("LOGIO_TOKEN", Optional.empty(), Optional.empty()));
+        this(root, configs, QuantalLoggerFactory.createDefaultLogzioConfig("LOGIO_TOKEN", Optional.empty(), Optional.empty()));
 
     }
 

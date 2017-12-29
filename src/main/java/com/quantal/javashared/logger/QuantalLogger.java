@@ -3,7 +3,7 @@ package com.quantal.javashared.logger;
 import com.godaddy.logging.Logger;
 import com.quantal.javashared.dto.CommonLogFields;
 
-public interface QuantalGoDaddyLogger extends Logger {
+public interface QuantalLogger extends Logger {
 
 
     default RuntimeException throwing(Throwable t) {
