@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,7 +78,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalGoDad
     }
 
     public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs) {
-        this(root, configs, QuantalGoDaddyLoggerFactory.createDefaultLogzioConfig("LOGIO_TOKEN"));
+        this(root, configs, QuantalGoDaddyLoggerFactory.createDefaultLogzioConfig("LOGIO_TOKEN", Optional.empty(), Optional.empty()));
 
     }
 

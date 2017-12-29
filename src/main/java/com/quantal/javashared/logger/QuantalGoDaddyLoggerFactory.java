@@ -10,7 +10,9 @@ import org.springframework.util.ReflectionUtils;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Created by dman on 24/07/2017.
@@ -47,7 +49,7 @@ public class QuantalGoDaddyLoggerFactory {
         return getLogger(clazz, commonLogFields, LoggingConfigs.getCurrent(), logzioConfig);
     }
 
-    public static LogzioConfig createDefaultLogzioConfig(String logzioToken){
+    public static LogzioConfig createDefaultLogzioConfig(String logzioToken, Optional<Boolean> showDebugInfo, Optional<ScheduledExecutorService> tasksExecutor){
         return new LogzioConfig(
                 logzioToken,
                 "java",
@@ -57,9 +59,9 @@ public class QuantalGoDaddyLoggerFactory {
                 "https://listener.logz.io:8071",
                 10 * 1000,
                 10 * 1000,
-                true,
+                showDebugInfo.orElse(false),
                 new LogzioStatusReporter(LoggerFactory.getLogger(QuantalGoDaddyLogger.class)),
-                Executors.newScheduledThreadPool(2),
+                tasksExecutor.orElse(Executors.newScheduledThreadPool(2)),
                 30
         );
     }
