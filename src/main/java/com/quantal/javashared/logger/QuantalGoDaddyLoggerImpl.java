@@ -27,6 +27,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.quantal.javashared.constants.CommonConstants.EVENT_KEY;
+
 
 /**
  * Created by dman on 19/07/2017.
@@ -38,7 +40,6 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     protected LogzioConfig logzioConfig;
 
     private final String EVENT_MSG="Event not supplied. Please supply an event via the %s method or with an 'event' key in the 'with' method";
-    private final String EVENT_KEY = "event";
     private boolean bSendToLogzio = false;
     private Map<String, Object> logzioJsonDataMap = new HashMap<>();
     private JsonObject jsonMessage;
