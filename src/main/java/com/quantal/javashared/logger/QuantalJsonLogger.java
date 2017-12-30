@@ -1,5 +1,6 @@
 package com.quantal.javashared.logger;
 
+import com.quantal.javashared.dto.LogField;
 import com.savoirtech.logging.slf4j.json.logger.JsonLogger;
 import org.slf4j.ext.XLogger;
 import com.savoirtech.logging.slf4j.json.LoggerFactory;
