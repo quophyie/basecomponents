@@ -528,10 +528,11 @@ public void info(String msg) {
                 if (arg instanceof Map) {
 
                     ((Map) arg).entrySet().forEach((entry) -> {
-                        String json = new Gson().toJson(((Map.Entry<String, Object>) entry).getValue());
+                        String value = new Gson().toJson(((Map.Entry<String, Object>) entry).getValue());
+                        //Object value = ((Map.Entry<String, Object>) entry).getValue().toString(;
                         if (jsonMessage == null)
                             createLogMessage();
-                        jsonMessage.addProperty(((Map.Entry<String, Object>) entry).getKey(), json);
+                        jsonMessage.addProperty(((Map.Entry<String, Object>) entry).getKey(), value);
                     });
                 }
             });
