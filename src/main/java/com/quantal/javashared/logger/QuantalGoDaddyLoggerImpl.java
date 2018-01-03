@@ -44,7 +44,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     private boolean bSendToLogzio = false;
     private Map<String, Object> logzioJsonDataMap = new HashMap<>();
     private JsonObject jsonMessage;
-    private final Map<String, Object> commonFieldsMap;
+    private Map<String, Object> commonFieldsMap;
     private CommonLogFields commonLogFields;
 
 
@@ -99,7 +99,8 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
             addToLogzioDataMap(obj);
         }
         Logger logger =  new AnnotatingLogger(root, this, obj, configs);
-        return new QuantalGoDaddyLoggerImpl(logger, this.configs, logzioConfig);
+        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, this.jsonMessage, this.hasEvent, this.commonFieldsMap);
+        return quantalLogger;
     }
 
     @Override
@@ -118,7 +119,8 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
             createLogMessage();
         jsonMessage.addProperty(key, value.toString());
         Logger logger = super.with(key, value);
-        return new QuantalGoDaddyLoggerImpl(logger, this.configs, logzioConfig);
+        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, this.jsonMessage, this.hasEvent, this.commonFieldsMap);
+        return quantalLogger;
     }
 
     @Override
@@ -610,5 +612,25 @@ public void info(String msg) {
                        root.error(e.getMessage(), e );
                     }
                 });
+    }
+
+    private QuantalLogger createImmutableQuantalGoDaddyLogger(Logger logger, JsonObject jsonMessage, boolean hasEvent, Map<String, Object> commonFieldsMap){
+        QuantalLogger quantalLogger =  new QuantalGoDaddyLoggerImpl(logger, this.configs, logzioConfig);
+        ((QuantalGoDaddyLoggerImpl)quantalLogger).setCommonFieldsMap(commonFieldsMap);
+        ((QuantalGoDaddyLoggerImpl)quantalLogger).setHasEvent(hasEvent);
+        ((QuantalGoDaddyLoggerImpl)quantalLogger).setJsonMessage(jsonMessage);
+        return quantalLogger;
+    }
+
+    public void setHasEvent(boolean hasEvent){
+        this.hasEvent = hasEvent;
+    }
+
+    public void setCommonFieldsMap(Map<String, Object> commonFieldsMap){
+        this.commonFieldsMap = commonFieldsMap;
+    }
+
+    public void setJsonMessage(JsonObject jsonMessage){
+        this.jsonMessage = jsonMessage;
     }
 }
