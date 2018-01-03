@@ -105,7 +105,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
     @Override
     public Logger with(final String key, final Object value) {
-        if (!StringUtils.isEmpty(key)) {
+        if (!StringUtils.isEmpty(key) && !this.hasEvent) {
 
             if (!"event".equals(key.toLowerCase().trim())) {
                 hasEvent = false;
