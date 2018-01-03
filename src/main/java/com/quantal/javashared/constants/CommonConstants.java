@@ -3,6 +3,7 @@ package com.quantal.javashared.constants;
 public class CommonConstants {
 
     public static final String EVENT_KEY = "event";
+    public static final String MARKER_KER = "marker";
     public static final String STATUS_CODE_KEY = "statusCode";
     public static final String TRACE_ID_HEADER_KEY = "X-TraceId";
     public static final String TRACE_ID_MDC_KEY = "traceId";

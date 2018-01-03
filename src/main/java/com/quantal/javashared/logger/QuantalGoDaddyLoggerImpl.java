@@ -28,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.quantal.javashared.constants.CommonConstants.EVENT_KEY;
+import static com.quantal.javashared.constants.CommonConstants.MARKER_KER;
 
 
 /**
@@ -50,6 +51,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs, LogzioConfig logzioConfig) {
         super(root, configs);
         this.logzioConfig = logzioConfig;
+        this.configs = configs;
         commonFieldsMap = new HashMap<>();
 
         if (logzioConfig != null)
@@ -96,7 +98,8 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
         else {
             addToLogzioDataMap(obj);
         }
-        return new AnnotatingLogger(root, this, obj, configs);
+        Logger logger =  new AnnotatingLogger(root, this, obj, configs);
+        return new QuantalGoDaddyLoggerImpl(logger, this.configs, logzioConfig);
     }
 
     @Override
@@ -114,7 +117,8 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
         if (jsonMessage == null)
             createLogMessage();
         jsonMessage.addProperty(key, value.toString());
-        return super.with(key, value);
+        Logger logger = super.with(key, value);
+        return new QuantalGoDaddyLoggerImpl(logger, this.configs, logzioConfig);
     }
 
     @Override
@@ -144,31 +148,36 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
     @Override
     public void trace(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName())
-        .trace(msg, t);
+        this.with(EVENT_KEY, t.getClass().getName());
+        checkAndMaybeSendToELK(msg,"trace", Arrays.asList(t));
+        super.trace(msg, t);
     }
 
 
     @Override
     public void trace(Marker marker, String msg) {
-        checkAndMaybeSendToELK(msg,"trace",null);;
-        super.trace(marker, msg);
+        this.with(MARKER_KER, marker);
+        checkAndMaybeSendToELK(msg,"trace", null);
+        super.trace(marker,msg);
     }
 
     @Override
     public void trace(Marker marker, String format, Object arg) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"trace", Arrays.asList(arg));
         super.trace(marker, format, arg);
     }
 
     @Override
     public void trace(Marker marker, String format, Object arg1, Object arg2) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"trace", Arrays.asList(arg1, arg2));
         super.trace(marker, format, arg1, arg2);
     }
 
     @Override
     public void trace(Marker marker, String format, Object... argArray) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"trace", Arrays.asList(argArray));
         super.trace(marker, format, argArray);
     }
@@ -176,7 +185,10 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     @Override
     public void trace(Marker marker, String msg, Throwable t) {
         this.with(EVENT_KEY, t.getClass().getName())
-                .trace(marker,msg, t);
+                .with(MARKER_KER, marker);
+        checkAndMaybeSendToELK(msg,"trace", Arrays.asList(t));
+        super.trace(marker,msg, t);
+
     }
 
 
@@ -207,31 +219,36 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
     @Override
     public void debug(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName())
-                .debug(msg, t);
+        this.with(EVENT_KEY, t.getClass().getName());
+        checkAndMaybeSendToELK(msg,"debug", Arrays.asList(t));
+        super.debug(msg, t);
     }
 
 
     @Override
     public void debug(Marker marker, String msg) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(msg,"debug",null);;
         super.debug(marker, msg);
     }
 
     @Override
     public void debug(Marker marker, String format, Object arg) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"debug", Arrays.asList(arg));
         super.debug(marker, format, arg);
     }
 
     @Override
     public void debug(Marker marker, String format, Object arg1, Object arg2) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"debug", Arrays.asList(arg1, arg2));
         super.debug(marker, format, arg1, arg2);
     }
 
     @Override
     public void debug(Marker marker, String format, Object... argArray) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"debug", Arrays.asList(argArray));
         super.debug(marker, format, argArray);
     }
@@ -239,7 +256,9 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     @Override
     public void debug(Marker marker, String msg, Throwable t) {
         this.with(EVENT_KEY, t.getClass().getName())
-                .debug(marker,msg, t);
+                .with(MARKER_KER, marker);
+        checkAndMaybeSendToELK(msg,"debug", Arrays.asList(t));
+        super.debug(marker,msg, t);
     }
 
 
@@ -273,31 +292,36 @@ public void info(String msg) {
 
     @Override
     public void info(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName())
-                .info(msg, t);
+        this.with(EVENT_KEY, t.getClass().getName());
+        checkAndMaybeSendToELK(msg,"info", Arrays.asList(t));
+        super.info(msg, t);
     }
 
 
     @Override
     public void info(Marker marker, String msg) {
-        checkAndMaybeSendToELK(msg,"info",null);;
+        this.with(MARKER_KER, marker);
+        checkAndMaybeSendToELK(msg,"info",null);
         super.info(marker, msg);
     }
 
     @Override
     public void info(Marker marker, String format, Object arg) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"info", Arrays.asList(arg));
         super.info(marker, format, arg);
     }
 
     @Override
     public void info(Marker marker, String format, Object arg1, Object arg2) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"info", Arrays.asList(arg1, arg2));
         super.info(marker, format, arg1, arg2);
     }
 
     @Override
     public void info(Marker marker, String format, Object... argArray) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"info", Arrays.asList(argArray));
         super.info(marker, format, argArray);
     }
@@ -305,7 +329,9 @@ public void info(String msg) {
     @Override
     public void info(Marker marker, String msg, Throwable t) {
         this.with(EVENT_KEY, t.getClass().getName())
-                .info(marker,msg, t);
+                .with(MARKER_KER, marker);
+        checkAndMaybeSendToELK(msg,"info", Arrays.asList(t));
+        super.info(marker,msg, t);
     }
 
 
@@ -337,31 +363,36 @@ public void info(String msg) {
 
     @Override
     public void warn(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName())
-                .warn(msg, t);
+        this.with(EVENT_KEY, t.getClass().getName());
+        checkAndMaybeSendToELK(msg,"warn", Arrays.asList(t));
+        super.warn(msg, t);
     }
 
 
     @Override
     public void warn(Marker marker, String msg) {
-        checkAndMaybeSendToELK(msg,"warn",null);;
+        this.with(MARKER_KER, marker);
+        checkAndMaybeSendToELK(msg,"warn",null);
         super.warn(marker, msg);
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"warn", Arrays.asList(arg));
         super.warn(marker, format, arg);
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg1, Object arg2) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"warn", Arrays.asList(arg1, arg2));
         super.warn(marker, format, arg1, arg2);
     }
 
     @Override
     public void warn(Marker marker, String format, Object... argArray) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"warn", Arrays.asList(argArray));
         super.warn(marker, format, argArray);
     }
@@ -369,7 +400,9 @@ public void info(String msg) {
     @Override
     public void warn(Marker marker, String msg, Throwable t) {
         this.with(EVENT_KEY, t.getClass().getName())
-                .warn(marker,msg, t);
+                .with(MARKER_KER, marker);
+        checkAndMaybeSendToELK(msg,"warn", Arrays.asList(t));
+        super.warn(marker,msg, t);
     }
 
     /*** END OF WARN ***/
@@ -405,31 +438,36 @@ public void info(String msg) {
 
     @Override
     public void error(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName())
-                .error(msg, t);
+        this.with(EVENT_KEY, t.getClass().getName());
+        checkAndMaybeSendToELK(msg,"error", Arrays.asList(t));
+        super.error(msg, t);
     }
 
 
     @Override
     public void error(Marker marker, String msg) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(msg,"error",null);;
         super.error(marker, msg);
     }
 
     @Override
     public void error(Marker marker, String format, Object arg) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"error", Arrays.asList(arg));
         super.error(marker, format, arg);
     }
 
     @Override
     public void error(Marker marker, String format, Object arg1, Object arg2) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"error", Arrays.asList(arg1, arg2));
         super.error(marker, format, arg1, arg2);
     }
 
     @Override
     public void error(Marker marker, String format, Object... argArray) {
+        this.with(MARKER_KER, marker);
         checkAndMaybeSendToELK(format,"error", Arrays.asList(argArray));
         super.error(marker, format, argArray);
     }
@@ -437,7 +475,9 @@ public void info(String msg) {
     @Override
     public void error(Marker marker, String msg, Throwable t) {
         this.with(EVENT_KEY, t.getClass().getName())
-                .error(marker,msg, t);
+            .with(MARKER_KER, marker);
+        checkAndMaybeSendToELK(msg,"error", Arrays.asList(t));
+        super.error(marker,msg, t);
     }
 
     @Override
