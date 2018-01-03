@@ -571,11 +571,11 @@ public void info(String msg) {
                 if (arg instanceof Map) {
 
                     ((Map) arg).entrySet().forEach((entry) -> {
-                        String value = new Gson().toJson(((Map.Entry<String, Object>) entry).getValue());
-                        //Object value = ((Map.Entry<String, Object>) entry).getValue().toString(;
+                        //String value = new Gson().toJson(((Map.Entry<String, Object>) entry).getValue());
+                        Object value = ((Map.Entry<String, Object>) entry).getValue()!= null ?((Map.Entry<String, Object>) entry).getValue().toString() :"";
                         if (jsonMessage == null)
                             createLogMessage();
-                        jsonMessage.addProperty(((Map.Entry<String, Object>) entry).getKey(), value);
+                        jsonMessage.addProperty(((Map.Entry<String, Object>) entry).getKey(), value.toString());
                     });
                 }
             });

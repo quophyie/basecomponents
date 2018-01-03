@@ -10,12 +10,12 @@ public class CommonLogFields {
         public CommonLogFields(){}
         //private String event;
         //private String msg;
-        private String proglang;
-        private String framework;
-        private String frameworkVersion;
-        private String name;
-        private String hostname;
-        private String moduleVersion;
-        private String lang;
-        private String time;
+        private Object proglang;
+        private Object framework;
+        private Object frameworkVersion;
+        private Object name;
+        private Object hostname;
+        private Object moduleVersion;
+        private Object lang;
+        private Object time;
 }

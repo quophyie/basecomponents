@@ -7,14 +7,19 @@ import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.Optional;
+
 @SpringBootApplication
 public class BasecomponentsApplication {
 
 	public static void main(String[] args) throws Throwable {
 
 		//Uncommment to run
-		SpringApplication.run(BasecomponentsApplication.class, args);
-		QuantalLogger logger = QuantalLoggerFactory.getLogger(BasecomponentsApplication.class, new CommonLogFields());
+		//SpringApplication.run(BasecomponentsApplication.class, args);
+		CommonLogFields commonLogFields =  new CommonLogFields();
+		commonLogFields.setFrameworkVersion(new String("1.0.1"));
+		commonLogFields.setFramework(1.00);
+		QuantalLogger logger = QuantalLoggerFactory.getLogzioLogger(BasecomponentsApplication.class,commonLogFields, QuantalLoggerFactory.createDefaultLogzioConfig("xfYVZUGzUaWAMPjUyUaBsVlpUszcuCaY", Optional.of(true), Optional.empty()));
 
 		logger.throwing(new NullPointerException());
 		logger.error(new ObjectAppendingMarker("TestMarker", "testMarkerFieldName"), "test markerMsg", new NullPointerException());
