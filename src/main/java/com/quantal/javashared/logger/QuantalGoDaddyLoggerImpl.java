@@ -529,7 +529,8 @@ public void info(String msg) {
     private void checkAndSendToLogzio(String msg, List<Object> args){
         if (!bSendToLogzio)
             return;
-        String formattedMsg = getFormattedMessage(msg, args.toArray());
+        Object[] argsArr = args == null ?  null : args.toArray();
+        String formattedMsg = getFormattedMessage(msg, argsArr);
         jsonMessage = addToLogzioJsonMessage(args);
         logzioJsonDataMap.putAll(commonFieldsMap);
         logzioJsonDataMap.putIfAbsent("msg", formattedMsg);
