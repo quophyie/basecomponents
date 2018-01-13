@@ -9,7 +9,6 @@ import com.quantal.javashared.dto.LogEvent;
 import com.quantal.javashared.dto.LogzioConfig;
 import com.quantal.javashared.exceptions.EventNotSuppliedException;
 import io.logz.sender.LogzioSender;
-import io.logz.sender.com.google.gson.Gson;
 import io.logz.sender.com.google.gson.JsonObject;
 import io.logz.sender.exceptions.LogzioParameterErrorException;
 import org.slf4j.Marker;
