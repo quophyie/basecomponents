@@ -32,9 +32,9 @@ jobs:
 
       - run: mvn deploy -Pgpg -s settings.xml
 
-      - run: curl -u ${CIRCLE_API_TOKEN}: -d build_parameters[CIRCLE_JOB]=deploy_production https://circleci.com/api/v1.1/project/github/quophyie/microservicebasepom/tree/master
+      - run: "curl -u ${CIRCLE_API_TOKEN}: -d build_parameters[CIRCLE_JOB]=deploy_production https://circleci.com/api/v1.1/project/github/quophyie/microservicebasepom/tree/master"
 
-      - run: curl -u ${CIRCLE_API_TOKEN}: -d build_parameters[CIRCLE_JOB]=deploy_production https://circleci.com/api/v1.1/project/github/quophyie/quantaljavamicroservicetemplate/tree/master
+      - run: "curl -u ${CIRCLE_API_TOKEN}: -d build_parameters[CIRCLE_JOB]=deploy_production https://circleci.com/api/v1.1/project/github/quophyie/quantaljavamicroservicetemplate/tree/master"
 
       - store_test_results:
           path: target/surefire-reports
