@@ -4,7 +4,10 @@ package com.quantal.javashared.objectmapper;
  * Created by dman on 08/03/2017.
  */
 
+import ma.glasnost.orika.Converter;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
+
+import java.util.List;
 
 /**
  * Orika mapper exposed as a Spring Bean. This mapper will not map nulls
@@ -21,6 +24,12 @@ public class NullSkippingOrikaBeanMapper extends OrikaBeanMapper {
     super();
    // this.mapNulls = mapNulls;
   }
+
+  public NullSkippingOrikaBeanMapper(List<Converter> converters) {
+    super(converters);
+    // this.mapNulls = mapNulls;
+  }
+
 
   /**
    * Configures the mapper factory builder

@@ -29,17 +29,17 @@ import java.util.Map;
  * @author dlizarra
  *
  */
-public class OrikaBeanMapper<S, D> extends ConfigurableMapper implements ApplicationContextAware {
+public class OrikaBeanMapper extends ConfigurableMapper implements ApplicationContextAware {
 
   private MapperFactory factory;
   private ApplicationContext applicationContext;
-  private List<Converter<S,D>> converters;
+  private List<Converter> converters;
 
   public OrikaBeanMapper() {
     super(false);
   }
 
-  public OrikaBeanMapper(List<Converter<S,D>>  converters){
+  public OrikaBeanMapper(List<Converter>  converters){
     this();
     this.converters = converters;
 
