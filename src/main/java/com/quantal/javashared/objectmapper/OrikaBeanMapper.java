@@ -18,6 +18,7 @@ import org.springframework.context.ApplicationContextAware;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,13 +29,20 @@ import java.util.Map;
  * @author dlizarra
  *
  */
-public class OrikaBeanMapper extends ConfigurableMapper implements ApplicationContextAware {
+public class OrikaBeanMapper<S, D> extends ConfigurableMapper implements ApplicationContextAware {
 
   private MapperFactory factory;
   private ApplicationContext applicationContext;
+  private List<Converter<S,D>> converters;
 
   public OrikaBeanMapper() {
     super(false);
+  }
+
+  public OrikaBeanMapper(List<Converter<S,D>>  converters){
+    this();
+    this.converters = converters;
+
   }
 
   /**
@@ -46,6 +54,11 @@ public class OrikaBeanMapper extends ConfigurableMapper implements ApplicationCo
     this.factory.getConverterFactory().registerConverter(new PassThroughConverter(LocalDate.class));
     this.factory.getConverterFactory().registerConverter(new PassThroughConverter(LocalDateTime.class));
 
+    if (converters != null){
+      this.converters
+              .stream()
+              .forEach( converter -> this.factory.getConverterFactory().registerConverter(converter));
+    }
     addAllSpringBeans(applicationContext);
   }
 
