@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import static com.quantal.javashared.constants.CommonConstants.EVENT_KEY;
 import static com.quantal.javashared.constants.CommonConstants.MARKER_KER;
+import static com.quantal.javashared.constants.CommonConstants.SUB_EVENT_KEY;
 
 
 /**
@@ -635,6 +636,13 @@ public void info(String msg) {
         if (args != null && !this.hasEvent) {
             event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
             Object subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
+            if(subEvent == null){
+                if(this.logzioJsonDataMap != null){
+                    subEvent = this.logzioJsonDataMap.get(SUB_EVENT_KEY);
+                } else if (this.jsonMessage != null){
+                    subEvent = this.jsonMessage.get(SUB_EVENT_KEY);
+                }
+            }
 
             if (event == null) {
                 try {
