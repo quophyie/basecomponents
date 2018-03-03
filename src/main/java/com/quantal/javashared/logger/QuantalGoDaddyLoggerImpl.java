@@ -533,6 +533,7 @@ public void info(String msg) {
         jsonMessage = addToLogzioJsonMessage(args);
         logzioJsonDataMap.putAll(commonFieldsMap);
         logzioJsonDataMap.putIfAbsent("msg", formattedMsg);
+        logzioJsonDataMap.putIfAbsent("message", formattedMsg);
 
         if(args!=null) {
             args.forEach(this::addToLogzioDataMap);
