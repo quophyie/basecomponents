@@ -514,6 +514,11 @@ public void info(String msg) {
         if (arguments !=null) {
             Object event = arguments.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent)arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
 
+            if(event == null){
+                Object subEvent = arguments.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
+                event = subEvent;
+            }
+
             if (!this.hasEvent && event == null){
                 throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
             }
