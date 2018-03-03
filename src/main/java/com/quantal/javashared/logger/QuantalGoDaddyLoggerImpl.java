@@ -512,12 +512,7 @@ public void info(String msg) {
 
     private void checkAndMaybeThrowEventNotSuppliedException(String methodName, List<Object> arguments){
         if (arguments !=null) {
-            Object event = arguments.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent)arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
-
-            if(event == null){
-                Object subEvent = arguments.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
-                event = subEvent;
-            }
+            Object event = tryGetEvent(arguments);
 
             if (!this.hasEvent && event == null){
                 throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
@@ -536,23 +531,8 @@ public void info(String msg) {
         if (!bSendToLogzio)
             return;
 
-        if (args != null) {
-            Object event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
-            Object subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
-
-            if (event == null) {
-                try {
-                    MDC mdc = (MDC) args.stream().filter(arg -> arg instanceof MDC).findAny().orElseThrow(() -> new NullPointerException("Mdc null"));
-                    if (mdc.get(EVENT_KEY) != null) {
-                        logzioJsonDataMap.put(EVENT_KEY, mdc.get(EVENT_KEY));
-                    } else {
-                        logzioJsonDataMap.put(EVENT_KEY, subEvent);
-                    }
-                } catch (NullPointerException npe) {
-
-                }
-            }
-        }
+        Object event = tryGetEvent(args);
+        logzioJsonDataMap.put(EVENT_KEY, event);
 
         Object[] argsArr = args == null ? null : args.toArray();
         String formattedMsg = getFormattedMessage(msg, argsArr);
@@ -648,6 +628,28 @@ public void info(String msg) {
         ((QuantalGoDaddyLoggerImpl)quantalLogger).setHasEvent(hasEvent);
         ((QuantalGoDaddyLoggerImpl)quantalLogger).setJsonMessage(jsonMessage);
         return quantalLogger;
+    }
+
+    private Object tryGetEvent(List<Object> args){
+        Object event = null;
+        if (args != null && !this.hasEvent) {
+            event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
+            Object subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
+
+            if (event == null) {
+                try {
+                    MDC mdc = (MDC) args.stream().filter(arg -> arg instanceof MDC).findAny().orElseThrow(() -> new NullPointerException("Mdc null"));
+                    if (mdc.get(EVENT_KEY) != null) {
+                        event = mdc.get(EVENT_KEY);
+                    } else {
+                        event = subEvent;
+                    }
+                } catch (NullPointerException npe) {
+
+                }
+            }
+        }
+        return  event;
     }
 
     public void setHasEvent(boolean hasEvent){
