@@ -637,9 +637,9 @@ public void info(String msg) {
             event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
             Object subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
             if(subEvent == null){
-                if(this.logzioJsonDataMap != null){
+                if(this.logzioJsonDataMap != null && !this.logzioJsonDataMap.isEmpty()){
                     subEvent = this.logzioJsonDataMap.get(SUB_EVENT_KEY);
-                } else if (this.jsonMessage != null){
+                } else if (this.jsonMessage != null && !this.jsonMessage.entrySet().isEmpty()){
                     subEvent = this.jsonMessage.get(SUB_EVENT_KEY);
                 }
             }
