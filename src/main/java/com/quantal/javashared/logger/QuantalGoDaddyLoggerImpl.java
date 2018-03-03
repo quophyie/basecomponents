@@ -527,33 +527,37 @@ public void info(String msg) {
             throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
         }
     }
-    private void checkAndSendToLogzio(String msg, List<Object> args){
+    private void checkAndSendToLogzio(String msg, List<Object> args) {
         if (!bSendToLogzio)
             return;
-        Object event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent)arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
-        Object subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent)arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
 
-        if(event == null) {
-            try {
-                MDC mdc = (MDC) args.stream().filter(arg -> arg instanceof MDC).findAny().orElseThrow(() -> new NullPointerException("Mdc null"));
-                if (mdc.get(EVENT_KEY) != null) {
-                    logzioJsonDataMap.put(EVENT_KEY,  mdc.get(EVENT_KEY));
-                } else {
-                    logzioJsonDataMap.put(EVENT_KEY, subEvent);
+        if (args != null) {
+            Object event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
+            Object subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
+
+            if (event == null) {
+                try {
+                    MDC mdc = (MDC) args.stream().filter(arg -> arg instanceof MDC).findAny().orElseThrow(() -> new NullPointerException("Mdc null"));
+                    if (mdc.get(EVENT_KEY) != null) {
+                        logzioJsonDataMap.put(EVENT_KEY, mdc.get(EVENT_KEY));
+                    } else {
+                        logzioJsonDataMap.put(EVENT_KEY, subEvent);
+                    }
+                } catch (NullPointerException npe) {
+
                 }
-            } catch (NullPointerException npe){
-
             }
         }
 
-        Object[] argsArr = args == null ?  null : args.toArray();
+        Object[] argsArr = args == null ? null : args.toArray();
         String formattedMsg = getFormattedMessage(msg, argsArr);
+
         jsonMessage = addToLogzioJsonMessage(args);
         logzioJsonDataMap.putAll(commonFieldsMap);
         logzioJsonDataMap.putIfAbsent("msg", formattedMsg);
         //logzioJsonDataMap.putIfAbsent("message", formattedMsg);
 
-        if(args!=null) {
+        if (args != null) {
             args.forEach(this::addToLogzioDataMap);
         }
 
