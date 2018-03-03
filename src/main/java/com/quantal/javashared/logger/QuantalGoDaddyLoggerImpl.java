@@ -646,7 +646,12 @@ public void info(String msg) {
 
             if (event == null) {
                 try {
-                    MDC mdc = (MDC) args.stream().filter(arg -> arg instanceof MDC).findAny().orElseThrow(() -> new NullPointerException("Mdc null"));
+                    MDC mdc = (MDC) args.stream().filter(arg -> {
+                        if(arg instanceof MDC){
+                            return true;
+                        }
+                        return false;
+                    }).findAny().orElseThrow(() -> new NullPointerException("Mdc null"));
                     if (mdc.get(EVENT_KEY) != null) {
                         event = mdc.get(EVENT_KEY);
                     } else {
