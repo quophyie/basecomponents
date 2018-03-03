@@ -4,6 +4,7 @@ import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggingConfigs;
 import com.godaddy.logging.logger.AnnotatingLogger;
 import com.godaddy.logging.logger.LoggerImpl;
+import com.quantal.javashared.constants.CommonConstants;
 import com.quantal.javashared.dto.CommonLogFields;
 import com.quantal.javashared.dto.LogEvent;
 import com.quantal.javashared.dto.LogzioConfig;
@@ -11,6 +12,7 @@ import com.quantal.javashared.exceptions.EventNotSuppliedException;
 import io.logz.sender.LogzioSender;
 import io.logz.sender.com.google.gson.JsonObject;
 import io.logz.sender.exceptions.LogzioParameterErrorException;
+import org.slf4j.MDC;
 import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
@@ -106,7 +108,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     public Logger with(final String key, final Object value) {
         if (!StringUtils.isEmpty(key) && !this.hasEvent) {
 
-            if (!"event".equals(key.toLowerCase().trim())) {
+            if (!CommonConstants.EVENT_KEY.equals(key.toLowerCase().trim())) {
                 hasEvent = false;
             } else {
                 hasEvent = true;
@@ -510,12 +512,12 @@ public void info(String msg) {
 
     private void checkAndMaybeThrowEventNotSuppliedException(String methodName, List<Object> arguments){
         if (arguments !=null) {
-            Object event = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
-
+            Object event = arguments.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent)arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
 
             if (!this.hasEvent && event == null){
                 throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
             }
+
             if(event!=null) {
                 this.with(EVENT_KEY, ((LogEvent) event).getEvent());
             }
@@ -528,12 +530,28 @@ public void info(String msg) {
     private void checkAndSendToLogzio(String msg, List<Object> args){
         if (!bSendToLogzio)
             return;
+        Object event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent)arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
+        Object subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent)arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
+
+        if(event == null) {
+            try {
+                MDC mdc = (MDC) args.stream().filter(arg -> arg instanceof MDC).findAny().orElseThrow(() -> new NullPointerException("Mdc null"));
+                if (mdc.get(EVENT_KEY) != null) {
+                    logzioJsonDataMap.put(EVENT_KEY,  mdc.get(EVENT_KEY));
+                } else {
+                    logzioJsonDataMap.put(EVENT_KEY, subEvent);
+                }
+            } catch (NullPointerException npe){
+
+            }
+        }
+
         Object[] argsArr = args == null ?  null : args.toArray();
         String formattedMsg = getFormattedMessage(msg, argsArr);
         jsonMessage = addToLogzioJsonMessage(args);
         logzioJsonDataMap.putAll(commonFieldsMap);
         logzioJsonDataMap.putIfAbsent("msg", formattedMsg);
-        logzioJsonDataMap.putIfAbsent("message", formattedMsg);
+        //logzioJsonDataMap.putIfAbsent("message", formattedMsg);
 
         if(args!=null) {
             args.forEach(this::addToLogzioDataMap);
