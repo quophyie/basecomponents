@@ -655,10 +655,7 @@ public void info(String msg) {
                         event = subEvent;
                     }
                 } catch (NullPointerException npe) {
-                    System.out.println(npe);
-                }
-                catch (Exception ex) {
-                    System.out.println(ex);
+                    event = subEvent;
                 }
             }
         }
