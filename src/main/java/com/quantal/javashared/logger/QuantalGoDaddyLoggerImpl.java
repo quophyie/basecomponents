@@ -513,14 +513,16 @@ public void info(String msg) {
 
     private void checkAndMaybeThrowEventNotSuppliedException(String methodName, List<Object> arguments){
         if (arguments !=null) {
-            LogEvent event = tryGetEvent(arguments);
+            Object event = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
+            LogEvent subEvent = tryGetSubEvent(arguments);
 
             if (!this.hasEvent && event == null){
                 throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
             }
 
             if(event!=null) {
-                this.with(EVENT_KEY, event.getEvent());
+                this.with(EVENT_KEY, ((LogEvent)event).getEvent());
+                this.with(SUB_EVENT_KEY, subEvent);
             }
         }
 
@@ -532,8 +534,8 @@ public void info(String msg) {
         if (!bSendToLogzio)
             return;
 
-        LogEvent event = tryGetEvent(args);
-        logzioJsonDataMap.put(EVENT_KEY, event.getEvent());
+        LogEvent subEvent = tryGetSubEvent(args);
+        logzioJsonDataMap.put(SUB_EVENT_KEY, subEvent.getEvent());
 
         Object[] argsArr = args == null ? null : args.toArray();
         String formattedMsg = getFormattedMessage(msg, argsArr);
@@ -631,44 +633,42 @@ public void info(String msg) {
         return quantalLogger;
     }
 
-    private LogEvent tryGetEvent(List<Object> args){
-        if(this.logzioJsonDataMap != null && this.logzioJsonDataMap.get(EVENT_KEY) != null){
-            return new LogEvent(this.logzioJsonDataMap.get(EVENT_KEY).toString());
-        } else if (this.jsonMessage != null && this.jsonMessage.get(EVENT_KEY) != null){
-             return new LogEvent(this.jsonMessage.get(EVENT_KEY).getAsString());
+    private LogEvent tryGetSubEvent(List<Object> args){
+        if(this.logzioJsonDataMap != null && this.logzioJsonDataMap.get(SUB_EVENT_KEY) != null){
+            return new LogEvent(this.logzioJsonDataMap.get(SUB_EVENT_KEY).toString());
+        } else if (this.jsonMessage != null && this.jsonMessage.get(SUB_EVENT_KEY) != null){
+             return new LogEvent(this.jsonMessage.get(SUB_EVENT_KEY).getAsString());
         }
-        Object event = null;
-        if (args != null && !this.hasEvent) {
-            event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
-            Object subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
+        Object subEvent = null;
+        if (args != null ) {
+             subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
             if(subEvent == null){
                 if(this.logzioJsonDataMap != null && !this.logzioJsonDataMap.isEmpty()){
-                    subEvent = this.logzioJsonDataMap.get(SUB_EVENT_KEY);
+                    subEvent = this.logzioJsonDataMap.get(EVENT_KEY);
                 } else if (this.jsonMessage != null && !this.jsonMessage.entrySet().isEmpty()){
-                    subEvent = this.jsonMessage.get(SUB_EVENT_KEY);
+                    subEvent = this.jsonMessage.get(EVENT_KEY);
                 }
             }
 
-            if (event == null) {
+            // If we still cant find the sub event, try and set the the subEvent to the event
+            if (subEvent == null) {
                 try {
                     MDC mdc = (MDC) args.stream().filter(arg -> arg instanceof MDC)
                             .findAny()
                             .orElseThrow(() -> new NullPointerException("Mdc null"));
                     if (mdc.get(EVENT_KEY) != null) {
-                        event = mdc.get(EVENT_KEY);
-                    } else {
-                        event = subEvent;
+                        subEvent = mdc.get(EVENT_KEY);
                     }
                 } catch (NullPointerException npe) {
-                    event = subEvent;
+                    subEvent = subEvent;
                 }
             }
         }
 
-        if(event instanceof LogEvent || event == null)
-        return  event == null ? null : (LogEvent) event;
+        if(subEvent instanceof LogEvent || subEvent == null)
+        return  subEvent == null ? null : (LogEvent) subEvent;
 
-        return new LogEvent(event.toString());
+        return new LogEvent(subEvent.toString());
     }
 
     public void setHasEvent(boolean hasEvent){
