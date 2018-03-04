@@ -632,6 +632,11 @@ public void info(String msg) {
     }
 
     private LogEvent tryGetEvent(List<Object> args){
+        if(this.logzioJsonDataMap != null && this.logzioJsonDataMap.get(EVENT_KEY) != null){
+            return new LogEvent(this.logzioJsonDataMap.get(SUB_EVENT_KEY).toString());
+        } else if (this.jsonMessage != null && this.jsonMessage.get(EVENT_KEY) != null){
+             return new LogEvent(this.jsonMessage.get(SUB_EVENT_KEY).getAsString());
+        }
         Object event = null;
         if (args != null && !this.hasEvent) {
             event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
