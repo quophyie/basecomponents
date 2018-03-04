@@ -1,5 +1,7 @@
 package com.quantal.javashared.logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggingConfigs;
 import com.godaddy.logging.logger.AnnotatingLogger;
@@ -41,6 +43,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     protected boolean hasEvent;
     protected LogzioSender sender;
     protected LogzioConfig logzioConfig;
+    protected ObjectMapper jsonObjectMapper;
 
     private final String EVENT_MSG="Event not supplied. Please supply an event via the %s method or with an 'event' key in the 'with' method";
     private boolean bSendToLogzio = false;
@@ -54,6 +57,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
         super(root, configs);
         this.logzioConfig = logzioConfig;
         this.configs = configs;
+        this.jsonObjectMapper = new ObjectMapper();
         commonFieldsMap = new HashMap<>();
 
         if (logzioConfig != null)
@@ -721,9 +725,13 @@ public void info(String msg) {
 
     private void sendEventNotSuppliedExceptionToLogzioAndThrow(String methodName){
         RuntimeException exception = new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
-        this.with(EVENT_KEY, exception.getClass().getSimpleName())
-        .with("msg", exception.getMessage())
-        .with("stack", exception.getStackTrace().toString());
+        try {
+            this.with(EVENT_KEY, exception.getClass().getSimpleName())
+            .with("msg", exception.getMessage())
+            .with("stack", jsonObjectMapper.writeValueAsString(exception.getStackTrace()));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         sender.send(jsonMessage);
         jsonMessage = createLogMessage();
         logzioJsonDataMap = new HashMap<>();
