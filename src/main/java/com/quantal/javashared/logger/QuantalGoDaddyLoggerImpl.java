@@ -724,15 +724,17 @@ public void info(String msg) {
     }
 
     private void sendEventNotSuppliedExceptionToLogzioAndThrow(String methodName){
-        RuntimeException exception = new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
+        String message = String.format(EVENT_MSG, methodName);
+        RuntimeException exception = new EventNotSuppliedException(message);
         try {
-            this.with(EVENT_KEY, exception.getClass().getSimpleName())
+            this.with(EVENT_KEY, exception.getClass().getName())
             .with("msg", exception.getMessage())
             .with("stack", jsonObjectMapper.writeValueAsString(exception.getStackTrace()));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
         sender.send(jsonMessage);
+        super.error(message, exception);
         jsonMessage = createLogMessage();
         logzioJsonDataMap = new HashMap<>();
         throw exception;
