@@ -524,30 +524,26 @@ public void info(String msg) {
         checkAndSendToLogzio(msg, arguments);
     }
 
-    private void checkAndMaybeThrowEventNotSuppliedException(String methodName, List<Object> arguments){
+    private void checkAndMaybeThrowEventNotSuppliedException(String methodName, List<Object> arguments) {
 
-        try {
-            if (arguments != null) {
-                //Object event = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
-                LogEvent event = tryGetEvent(arguments);
-                LogEvent subEvent = tryGetSubEvent(arguments);
+        if (arguments != null) {
+            //Object event = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
+            LogEvent event = tryGetEvent(arguments);
+            LogEvent subEvent = tryGetSubEvent(arguments);
 
-                if (!this.hasEvent && event == null) {
-                    sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
-                }
-
-                if (event != null) {
-                    this.with(EVENT_KEY, event == null ? null : event.getEvent());
-                    this.with(SUB_EVENT_KEY, subEvent == null ? null : subEvent.getEvent());
-                }
-            } else if (!this.hasEvent) {
+            if (!this.hasEvent && event == null) {
                 sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
             }
-        } catch (EventNotSuppliedException ense){
-            resetDataContainers();
-            return;
+
+            if (event != null) {
+                this.with(EVENT_KEY, event == null ? null : event.getEvent());
+                this.with(SUB_EVENT_KEY, subEvent == null ? null : subEvent.getEvent());
+            }
+        } else if (!this.hasEvent) {
+            sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
         }
     }
+
     private void checkAndSendToLogzio(String msg, List<Object> args) {
         if (!bSendToLogzio)
             return;
