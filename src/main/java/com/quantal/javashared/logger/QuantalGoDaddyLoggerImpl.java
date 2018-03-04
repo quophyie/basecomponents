@@ -733,6 +733,7 @@ public void info(String msg) {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
+        logzioJsonDataMap.put("Test", "the test key");
         sender.send(jsonMessage);
         super.error(message, exception);
         jsonMessage = createLogMessage();
