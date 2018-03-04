@@ -513,14 +513,14 @@ public void info(String msg) {
 
     private void checkAndMaybeThrowEventNotSuppliedException(String methodName, List<Object> arguments){
         if (arguments !=null) {
-            Object event = tryGetEvent(arguments);
+            LogEvent event = tryGetEvent(arguments);
 
             if (!this.hasEvent && event == null){
                 throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
             }
 
             if(event!=null) {
-                this.with(EVENT_KEY, ((LogEvent) event).getEvent());
+                this.with(EVENT_KEY, event.getEvent());
             }
         }
 
@@ -532,8 +532,8 @@ public void info(String msg) {
         if (!bSendToLogzio)
             return;
 
-        Object event = tryGetEvent(args);
-        logzioJsonDataMap.put(EVENT_KEY, event);
+        LogEvent event = tryGetEvent(args);
+        logzioJsonDataMap.put(EVENT_KEY, event.getEvent());
 
         Object[] argsArr = args == null ? null : args.toArray();
         String formattedMsg = getFormattedMessage(msg, argsArr);
@@ -631,7 +631,7 @@ public void info(String msg) {
         return quantalLogger;
     }
 
-    private Object tryGetEvent(List<Object> args){
+    private LogEvent tryGetEvent(List<Object> args){
         Object event = null;
         if (args != null && !this.hasEvent) {
             event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
@@ -659,7 +659,11 @@ public void info(String msg) {
                 }
             }
         }
-        return  event;
+
+        if(event instanceof LogEvent || event == null)
+        return  event == null ? null : (LogEvent) event;
+
+        return new LogEvent(event.toString());
     }
 
     public void setHasEvent(boolean hasEvent){
