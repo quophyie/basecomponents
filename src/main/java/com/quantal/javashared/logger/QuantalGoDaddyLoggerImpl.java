@@ -721,9 +721,9 @@ public void info(String msg) {
 
     private void sendEventNotSuppliedExceptionToLogzioAndThrow(String methodName){
         RuntimeException exception = new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
-        jsonMessage.addProperty(EVENT_KEY, exception.getClass().getSimpleName());
-        jsonMessage.addProperty("msg", exception.getMessage());
-        jsonMessage.addProperty("stack", exception.getStackTrace().toString());
+        this.with(EVENT_KEY, exception.getClass().getSimpleName())
+        .with("msg", exception.getMessage())
+        .with("stack", exception.getStackTrace().toString());
         sender.send(jsonMessage);
         jsonMessage = createLogMessage();
         logzioJsonDataMap = new HashMap<>();
