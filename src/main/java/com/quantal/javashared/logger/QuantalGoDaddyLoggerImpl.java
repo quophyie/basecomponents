@@ -743,7 +743,7 @@ public void info(String msg) {
         super.error(message, exception);
         jsonMessage = createLogMessage();
         logzioJsonDataMap = new HashMap<>();
-        throw exception;
+        throw new EventNotSuppliedException(message);
     }
 
     public void setHasEvent(boolean hasEvent){
