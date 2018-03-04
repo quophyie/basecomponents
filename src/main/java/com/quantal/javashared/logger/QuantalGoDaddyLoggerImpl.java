@@ -516,23 +516,28 @@ public void info(String msg) {
     }
 
     private void checkAndMaybeThrowEventNotSuppliedException(String methodName, List<Object> arguments){
-        if (arguments !=null) {
-            //Object event = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
-            LogEvent event = tryGetEvent(arguments);
-            LogEvent subEvent = tryGetSubEvent(arguments);
 
-            if (!this.hasEvent && event == null){
+        try {
+            if (arguments != null) {
+                //Object event = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
+                LogEvent event = tryGetEvent(arguments);
+                LogEvent subEvent = tryGetSubEvent(arguments);
+
+                if (!this.hasEvent && event == null) {
+                    sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
+                }
+
+                if (event != null) {
+                    this.with(EVENT_KEY, event.getEvent());
+                    this.with(SUB_EVENT_KEY, subEvent.getEvent());
+                }
+            } else if (!this.hasEvent) {
                 sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
             }
-
-            if(event!=null) {
-                this.with(EVENT_KEY, event.getEvent());
-                this.with(SUB_EVENT_KEY, subEvent.getEvent());
-            }
-        }
-
-        else if(!this.hasEvent) {
-            sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
+        } catch (EventNotSuppliedException ense){
+            this.jsonMessage = createLogMessage();
+            this.logzioJsonDataMap = new HashMap<>();
+            return;
         }
     }
     private void checkAndSendToLogzio(String msg, List<Object> args) {
