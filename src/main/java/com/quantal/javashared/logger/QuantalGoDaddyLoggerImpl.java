@@ -517,7 +517,7 @@ public void info(String msg) {
             LogEvent subEvent = tryGetSubEvent(arguments);
 
             if (!this.hasEvent && event == null){
-                throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
+                sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
             }
 
             if(event!=null) {
@@ -527,7 +527,7 @@ public void info(String msg) {
         }
 
         else if(!this.hasEvent) {
-            throw new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
+            sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
         }
     }
     private void checkAndSendToLogzio(String msg, List<Object> args) {
@@ -642,13 +642,13 @@ public void info(String msg) {
         Object subEvent = null;
         if (args != null ) {
              subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
-            if(subEvent == null){
+            /*if(subEvent == null){
                 if(this.logzioJsonDataMap != null && !this.logzioJsonDataMap.isEmpty()){
                     subEvent = this.logzioJsonDataMap.get(EVENT_KEY);
                 } else if (this.jsonMessage != null && !this.jsonMessage.entrySet().isEmpty()){
                     subEvent = this.jsonMessage.get(EVENT_KEY);
                 }
-            }
+            }*/
 
             // If we still cant find the sub event, try and set the the subEvent to the event
             if (subEvent == null) {
@@ -665,10 +665,25 @@ public void info(String msg) {
             }
         }
 
-        if(subEvent instanceof LogEvent || subEvent == null)
-        return  subEvent == null ? null : (LogEvent) subEvent;
+        // Return th
+        if(subEvent instanceof LogEvent || subEvent == null) {
+            if (subEvent !=null)
+                return (LogEvent) subEvent;
+            if (this.jsonMessage.get(EVENT_KEY) != null)
+                return new LogEvent(this.jsonMessage.get(EVENT_KEY).toString());
+            else  if (this.logzioJsonDataMap.get(EVENT_KEY) != null)
+                return new LogEvent(this.logzioJsonDataMap.get(EVENT_KEY).toString());
+        }
 
         return new LogEvent(subEvent.toString());
+    }
+
+    private void sendEventNotSuppliedExceptionToLogzioAndThrow(String methodName){
+        RuntimeException exception = new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
+        jsonMessage.addProperty(EVENT_KEY, exception.getMessage());
+        sender.send(jsonMessage);
+        createLogMessage();
+        throw exception;
     }
 
     public void setHasEvent(boolean hasEvent){
