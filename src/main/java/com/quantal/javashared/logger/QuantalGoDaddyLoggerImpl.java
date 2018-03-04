@@ -99,14 +99,17 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
             this.hasEvent = true;
         }
 
+        JsonObject quantalLoggerJsonMessage = new JsonObject();
         if (obj instanceof Map){
-            addToLogzioJsonMessage(Arrays.asList(obj));
+            quantalLoggerJsonMessage = createJsonMessageFromList(Arrays.asList(obj));
         }
         else {
             addToLogzioDataMap(obj);
+            quantalLoggerJsonMessage = createJsonMessageFromList(Arrays.asList(obj));
+            quantalLoggerJsonMessage = updateJsonMessage(this.jsonMessage, quantalLoggerJsonMessage);
         }
         Logger logger =  new AnnotatingLogger(root, this, obj, configs);
-        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, this.jsonMessage, this.hasEvent, this.commonFieldsMap);
+        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, quantalLoggerJsonMessage, this.hasEvent, this.commonFieldsMap);
         return quantalLogger;
     }
 
@@ -123,11 +126,15 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
         }
 
         if (jsonMessage == null)
-            createLogMessage();
-         jsonMessage.addProperty(key, value == null ? null : value.toString());
-
+            this.jsonMessage = new JsonObject();
+         //jsonMessage.addProperty(key, value == null ? null : value.toString());
+        JsonObject quantalLoggerjsonMsg =  new JsonObject();
+        quantalLoggerjsonMsg.addProperty(key, value == null ? null : value.toString());
+        this.jsonMessage.entrySet().forEach((entry) -> {
+            quantalLoggerjsonMsg.addProperty(entry.getKey(), entry.getValue() == null ? null :  entry.getValue().getAsString());
+        });
         Logger logger = super.with(key, value);
-        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, this.jsonMessage, this.hasEvent, this.commonFieldsMap);
+        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, quantalLoggerjsonMsg, this.hasEvent, this.commonFieldsMap);
         return quantalLogger;
     }
 
@@ -158,7 +165,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
     @Override
     public void trace(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName());
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(EVENT_KEY, t.getClass().getName())).jsonMessage;
         checkAndMaybeSendToELK(msg,"trace", Arrays.asList(t));
         super.trace(msg, t);
     }
@@ -166,36 +173,36 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
     @Override
     public void trace(Marker marker, String msg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(msg,"trace", null);
         super.trace(marker,msg);
     }
 
     @Override
     public void trace(Marker marker, String format, Object arg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"trace", Arrays.asList(arg));
         super.trace(marker, format, arg);
     }
 
     @Override
     public void trace(Marker marker, String format, Object arg1, Object arg2) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"trace", Arrays.asList(arg1, arg2));
         super.trace(marker, format, arg1, arg2);
     }
 
     @Override
     public void trace(Marker marker, String format, Object... argArray) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"trace", Arrays.asList(argArray));
         super.trace(marker, format, argArray);
     }
 
     @Override
     public void trace(Marker marker, String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName())
-                .with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(EVENT_KEY, t.getClass().getName())
+                .with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(msg,"trace", Arrays.asList(t));
         super.trace(marker,msg, t);
 
@@ -229,7 +236,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
     @Override
     public void debug(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName());
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(EVENT_KEY, t.getClass().getName())).jsonMessage;
         checkAndMaybeSendToELK(msg,"debug", Arrays.asList(t));
         super.debug(msg, t);
     }
@@ -237,36 +244,36 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
     @Override
     public void debug(Marker marker, String msg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(msg,"debug",null);;
         super.debug(marker, msg);
     }
 
     @Override
     public void debug(Marker marker, String format, Object arg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"debug", Arrays.asList(arg));
         super.debug(marker, format, arg);
     }
 
     @Override
     public void debug(Marker marker, String format, Object arg1, Object arg2) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"debug", Arrays.asList(arg1, arg2));
         super.debug(marker, format, arg1, arg2);
     }
 
     @Override
     public void debug(Marker marker, String format, Object... argArray) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"debug", Arrays.asList(argArray));
         super.debug(marker, format, argArray);
     }
 
     @Override
     public void debug(Marker marker, String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName())
-                .with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(EVENT_KEY, t.getClass().getName())
+                .with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(msg,"debug", Arrays.asList(t));
         super.debug(marker,msg, t);
     }
@@ -302,7 +309,7 @@ public void info(String msg) {
 
     @Override
     public void info(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName());
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(EVENT_KEY, t.getClass().getName())).jsonMessage;
         checkAndMaybeSendToELK(msg,"info", Arrays.asList(t));
         super.info(msg, t);
     }
@@ -310,36 +317,36 @@ public void info(String msg) {
 
     @Override
     public void info(Marker marker, String msg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(msg,"info",null);
         super.info(marker, msg);
     }
 
     @Override
     public void info(Marker marker, String format, Object arg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"info", Arrays.asList(arg));
         super.info(marker, format, arg);
     }
 
     @Override
     public void info(Marker marker, String format, Object arg1, Object arg2) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"info", Arrays.asList(arg1, arg2));
         super.info(marker, format, arg1, arg2);
     }
 
     @Override
     public void info(Marker marker, String format, Object... argArray) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"info", Arrays.asList(argArray));
         super.info(marker, format, argArray);
     }
 
     @Override
     public void info(Marker marker, String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName())
-                .with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(EVENT_KEY, t.getClass().getName())
+                .with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(msg,"info", Arrays.asList(t));
         super.info(marker,msg, t);
     }
@@ -373,7 +380,7 @@ public void info(String msg) {
 
     @Override
     public void warn(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName());
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(EVENT_KEY, t.getClass().getName())).jsonMessage;
         checkAndMaybeSendToELK(msg,"warn", Arrays.asList(t));
         super.warn(msg, t);
     }
@@ -381,28 +388,28 @@ public void info(String msg) {
 
     @Override
     public void warn(Marker marker, String msg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(msg,"warn",null);
         super.warn(marker, msg);
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"warn", Arrays.asList(arg));
         super.warn(marker, format, arg);
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg1, Object arg2) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"warn", Arrays.asList(arg1, arg2));
         super.warn(marker, format, arg1, arg2);
     }
 
     @Override
     public void warn(Marker marker, String format, Object... argArray) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"warn", Arrays.asList(argArray));
         super.warn(marker, format, argArray);
     }
@@ -448,7 +455,7 @@ public void info(String msg) {
 
     @Override
     public void error(String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName());
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(EVENT_KEY, t.getClass().getName())).jsonMessage;
         checkAndMaybeSendToELK(msg,"error", Arrays.asList(t));
         super.error(msg, t);
     }
@@ -456,14 +463,14 @@ public void info(String msg) {
 
     @Override
     public void error(Marker marker, String msg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage= ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(msg,"error",null);;
         super.error(marker, msg);
     }
 
     @Override
     public void error(Marker marker, String format, Object arg) {
-        this.with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(format,"error", Arrays.asList(arg));
         super.error(marker, format, arg);
     }
@@ -484,8 +491,8 @@ public void info(String msg) {
 
     @Override
     public void error(Marker marker, String msg, Throwable t) {
-        this.with(EVENT_KEY, t.getClass().getName())
-            .with(MARKER_KER, marker);
+        this.jsonMessage = ((QuantalGoDaddyLoggerImpl)this.with(EVENT_KEY, t.getClass().getName())
+            .with(MARKER_KER, marker)).jsonMessage;
         checkAndMaybeSendToELK(msg,"error", Arrays.asList(t));
         super.error(marker,msg, t);
     }
@@ -537,8 +544,7 @@ public void info(String msg) {
                 sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
             }
         } catch (EventNotSuppliedException ense){
-            this.jsonMessage = createLogMessage();
-            this.logzioJsonDataMap = new HashMap<>();
+            resetDataContainers();
             return;
         }
     }
@@ -554,7 +560,7 @@ public void info(String msg) {
         Object[] argsArr = args == null ? null : args.toArray();
         String formattedMsg = getFormattedMessage(msg, argsArr);
 
-        jsonMessage = addToLogzioJsonMessage(args);
+        JsonObject argsJsonMessage = createJsonMessageFromList(args);
         logzioJsonDataMap.putAll(commonFieldsMap);
         logzioJsonDataMap.putIfAbsent("msg", formattedMsg);
         //logzioJsonDataMap.putIfAbsent("message", formattedMsg);
@@ -562,11 +568,12 @@ public void info(String msg) {
         if (args != null) {
             args.forEach(this::addToLogzioDataMap);
         }
+        JsonObject logzioJsonDataMapMessage = createJsonMessageFromList(Arrays.asList(logzioJsonDataMap));
+        JsonObject logzioDataAndArgsJsonMessage = updateJsonMessage(argsJsonMessage, logzioJsonDataMapMessage);
+        JsonObject jsonMessageToSendToLogzio = updateJsonMessage(this.jsonMessage, logzioDataAndArgsJsonMessage);
+        sender.send(jsonMessageToSendToLogzio);
 
-        sender.send(jsonMessage);
-
-        logzioJsonDataMap = new HashMap<>();
-        createLogMessage();
+        resetDataContainers();
     }
 
     private void addToLogzioDataMap(Object obj){
@@ -583,13 +590,14 @@ public void info(String msg) {
                 } else {
                     logzioJsonDataMap.put(key.concat(newKey), obj);
                 }
-                addToLogzioJsonMessage(Arrays.asList(logzioJsonDataMap));
+
             }
         }
     }
 
-    private JsonObject addToLogzioJsonMessage(List<Object> args){
+    private JsonObject createJsonMessageFromList(List<Object> args){
 
+        final JsonObject jsonMessage = new JsonObject();
         if (args != null ) {
             args.stream().forEach(arg -> {
                 if (arg instanceof Map) {
@@ -597,14 +605,26 @@ public void info(String msg) {
                     ((Map) arg).entrySet().forEach((entry) -> {
                         //String value = new Gson().toJson(((Map.Entry<String, Object>) entry).getValue());
                         Object value = ((Map.Entry<String, Object>) entry).getValue()!= null ?((Map.Entry<String, Object>) entry).getValue().toString() :"";
-                        if (jsonMessage == null)
-                            createLogMessage();
                         jsonMessage.addProperty(((Map.Entry<String, Object>) entry).getKey(), value.toString());
                     });
                 }
             });
         }
         return jsonMessage;
+    }
+
+    private JsonObject updateJsonMessage(JsonObject source, JsonObject target){
+        JsonObject jsonObject = new JsonObject();
+        if (source == null && target != null){
+            target.entrySet().forEach(entry -> jsonObject.addProperty(entry.getKey(), entry.getValue().getAsString()));
+        } else if (source != null && target == null){
+            source.entrySet().forEach(entry -> jsonObject.addProperty(entry.getKey(), entry.getValue().getAsString()));
+        } else {
+            source.entrySet().forEach(entry -> jsonObject.addProperty(entry.getKey(), entry.getValue().getAsString()));
+            target.entrySet().forEach(entry -> jsonObject.addProperty(entry.getKey(), entry.getValue().getAsString()));
+
+        }
+        return jsonObject;
     }
 
     private JsonObject createLogMessage(){
@@ -732,6 +752,10 @@ public void info(String msg) {
         return new LogEvent(event.toString());
     }
 
+    private void resetDataContainers(){
+        this.jsonMessage = createLogMessage();
+        this.logzioJsonDataMap = new HashMap<>();
+    }
     private void sendEventNotSuppliedExceptionToLogzioAndThrow(String methodName){
         String message = String.format(EVENT_MSG, methodName);
         RuntimeException exception = new EventNotSuppliedException(message);
@@ -745,8 +769,7 @@ public void info(String msg) {
         logzioJsonDataMap.put("Test", "the test key");
         sender.send(jsonMessage);
         super.error(message, exception);
-        jsonMessage = createLogMessage();
-        logzioJsonDataMap = new HashMap<>();
+        resetDataContainers();
         throw new EventNotSuppliedException(message);
     }
 
