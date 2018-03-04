@@ -680,18 +680,12 @@ public void info(String msg) {
                 }
             }*/
 
-            // If we still cant find the sub event, try and set the the subEvent to the event
+            // If we still cant find the sub event, try and find it in the MDC
             if (subEvent == null) {
-                try {
-                    MDC mdc = (MDC) args.stream().filter(arg -> arg instanceof MDC)
-                            .findAny()
-                            .orElseThrow(() -> new NullPointerException("Mdc null"));
-                    if (mdc.get(EVENT_KEY) != null) {
-                        subEvent = mdc.get(EVENT_KEY);
-                    }
-                } catch (NullPointerException npe) {
-                    subEvent = subEvent;
-                }
+                subEvent = args.stream().filter(arg -> arg instanceof MDC)
+                        .findAny()
+                        .map(mdc -> ((MDC) mdc).get(EVENT_KEY))
+                        .orElse(MDC.get(EVENT_KEY));
             }
         }
 
@@ -727,18 +721,13 @@ public void info(String msg) {
                 }
             }
 
-            // If we still cant find the sub event, try and set the the event to the event
+            // If we still cant find the event in jsonMessage and logzioJsonDataMap,
+            // try and find it in the MDC
             if (event == null) {
-                try {
-                    MDC mdc = (MDC) args.stream().filter(arg -> arg instanceof MDC)
-                            .findAny()
-                            .orElseThrow(() -> new NullPointerException("Mdc null"));
-                    if (mdc.get(EVENT_KEY) != null) {
-                        event = mdc.get(EVENT_KEY);
-                    }
-                } catch (NullPointerException npe) {
-                    event = event;
-                }
+                event = args.stream().filter(arg -> arg instanceof MDC)
+                        .findAny()
+                        .map(mdc -> ((MDC) mdc).get(EVENT_KEY))
+                        .orElse(MDC.get(EVENT_KEY));
             }
         }
 
