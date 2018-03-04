@@ -723,7 +723,8 @@ public void info(String msg) {
         RuntimeException exception = new EventNotSuppliedException(String.format(EVENT_MSG, methodName));
         jsonMessage.addProperty(EVENT_KEY, exception.getMessage());
         sender.send(jsonMessage);
-        createLogMessage();
+        jsonMessage = createLogMessage();
+        logzioJsonDataMap = new HashMap<>();
         throw exception;
     }
 
