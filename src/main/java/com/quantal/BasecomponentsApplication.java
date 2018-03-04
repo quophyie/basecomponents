@@ -24,6 +24,9 @@ public class BasecomponentsApplication {
 		logger.throwing(new NullPointerException());
 		logger.error(new ObjectAppendingMarker("TestMarker", "testMarkerFieldName"), "test markerMsg", new NullPointerException());
 		logger.with("StringTest1").with("StringTest2").info("Some string message");
+		logger.with("StringTest1").with("StringTest2").info("Some string message");
+		logger.with("String1","StringTest1").with("String2","StringTest2").info("Some string message 1");
+		logger.with("String3","StringTest3").with("String4","StringTest4").info("Some string message 2");
 
 	}
 }

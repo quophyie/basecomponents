@@ -12,6 +12,7 @@ import com.quantal.javashared.dto.LogEvent;
 import com.quantal.javashared.dto.LogzioConfig;
 import com.quantal.javashared.exceptions.EventNotSuppliedException;
 import io.logz.sender.LogzioSender;
+import io.logz.sender.com.google.gson.JsonNull;
 import io.logz.sender.com.google.gson.JsonObject;
 import io.logz.sender.exceptions.LogzioParameterErrorException;
 import org.slf4j.MDC;
@@ -43,7 +44,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     protected boolean hasEvent;
     protected LogzioSender sender;
     protected LogzioConfig logzioConfig;
-    protected ObjectMapper jsonObjectMapper;
+    private ObjectMapper jsonObjectMapper;
 
     private final String EVENT_MSG="Event not supplied. Please supply an event via the %s method or with an 'event' key in the 'with' method";
     private boolean bSendToLogzio = false;
@@ -123,7 +124,8 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
         if (jsonMessage == null)
             createLogMessage();
-        jsonMessage.addProperty(key, value.toString());
+         jsonMessage.addProperty(key, value == null ? null : value.toString());
+
         Logger logger = super.with(key, value);
         QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, this.jsonMessage, this.hasEvent, this.commonFieldsMap);
         return quantalLogger;
@@ -528,8 +530,8 @@ public void info(String msg) {
                 }
 
                 if (event != null) {
-                    this.with(EVENT_KEY, event.getEvent());
-                    this.with(SUB_EVENT_KEY, subEvent.getEvent());
+                    this.with(EVENT_KEY, event == null ? null : event.getEvent());
+                    this.with(SUB_EVENT_KEY, subEvent == null ? null : subEvent.getEvent());
                 }
             } else if (!this.hasEvent) {
                 sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
@@ -546,8 +548,8 @@ public void info(String msg) {
 
         LogEvent event = tryGetEvent(args);
         LogEvent subEvent = tryGetSubEvent(args);
-        logzioJsonDataMap.put(EVENT_KEY, event.getEvent());
-        logzioJsonDataMap.put(SUB_EVENT_KEY, subEvent.getEvent());
+        logzioJsonDataMap.put(EVENT_KEY,event == null ? null : event.getEvent());
+        logzioJsonDataMap.put(SUB_EVENT_KEY, subEvent == null ? null : subEvent.getEvent());
 
         Object[] argsArr = args == null ? null : args.toArray();
         String formattedMsg = getFormattedMessage(msg, argsArr);
@@ -648,7 +650,7 @@ public void info(String msg) {
     private LogEvent tryGetSubEvent(List<Object> args){
         if(this.logzioJsonDataMap != null && this.logzioJsonDataMap.get(SUB_EVENT_KEY) != null){
             return new LogEvent(this.logzioJsonDataMap.get(SUB_EVENT_KEY).toString());
-        } else if (this.jsonMessage != null && this.jsonMessage.get(SUB_EVENT_KEY) != null){
+        } else if (this.jsonMessage != null && this.jsonMessage.get(SUB_EVENT_KEY) != null && this.jsonMessage.get(SUB_EVENT_KEY) != JsonNull.INSTANCE){
              return new LogEvent(this.jsonMessage.get(SUB_EVENT_KEY).getAsString());
         }
         Object subEvent = null;
@@ -679,6 +681,8 @@ public void info(String msg) {
 
         // Return th
         if(subEvent instanceof LogEvent || subEvent == null) {
+            if (subEvent == null)
+                return  null;
             if (subEvent !=null)
                 return (LogEvent) subEvent;
             if (this.jsonMessage.get(EVENT_KEY) != null)
@@ -693,12 +697,12 @@ public void info(String msg) {
     private LogEvent tryGetEvent(List<Object> args){
         if(this.logzioJsonDataMap != null && this.logzioJsonDataMap.get(EVENT_KEY) != null){
             return new LogEvent(this.logzioJsonDataMap.get(EVENT_KEY).toString());
-        } else if (this.jsonMessage != null && this.jsonMessage.get(EVENT_KEY) != null){
+        } else if (this.jsonMessage != null && this.jsonMessage.get(EVENT_KEY) != null && this.jsonMessage.get(EVENT_KEY) != JsonNull.INSTANCE){
             return new LogEvent(this.jsonMessage.get(EVENT_KEY).getAsString());
         }
         Object event = null;
         if (args != null ) {
-            event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
+            event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
             if(event == null){
                 if(this.logzioJsonDataMap != null && !this.logzioJsonDataMap.isEmpty()){
                     event = this.logzioJsonDataMap.get(EVENT_KEY);
