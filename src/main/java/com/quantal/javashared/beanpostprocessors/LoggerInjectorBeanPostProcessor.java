@@ -3,6 +3,7 @@ package com.quantal.javashared.beanpostprocessors;
 import com.quantal.javashared.annotations.logger.InjectLogger;
 import com.quantal.javashared.annotations.logger.LoggerType;
 import com.quantal.javashared.dto.CommonLogFields;
+import com.quantal.javashared.dto.LoggerConfig;
 import com.quantal.javashared.dto.LogzioConfig;
 import com.quantal.javashared.logger.QuantalLogger;
 import com.quantal.javashared.logger.QuantalLoggerFactory;
@@ -59,11 +60,18 @@ public class LoggerInjectorBeanPostProcessor implements BeanPostProcessor{
             if(field.getType() == QuantalLogger.class) {
                 switch (loggerType) {
                     case Logzio: {
-                        ReflectionUtils.setField(field, bean, QuantalLoggerFactory.getLogzioLogger(clazz, commonLogFields, logzioConfig));
+                        LoggerConfig loggerConfig = LoggerConfig.builder()
+                                .logzioConfig(logzioConfig)
+                                .commonLogFields(commonLogFields)
+                                .build();
+                        ReflectionUtils.setField(field, bean, QuantalLoggerFactory.getLogzioLogger(clazz,loggerConfig));
                         break;
                     }
                     case GoDaddy: {
-                        ReflectionUtils.setField(field, bean, QuantalLoggerFactory.getLogger(clazz, commonLogFields));
+                        LoggerConfig loggerConfig = LoggerConfig.builder()
+                                .commonLogFields(commonLogFields)
+                                .build();
+                        ReflectionUtils.setField(field, bean, QuantalLoggerFactory.getLogger(clazz, loggerConfig));
                         break;
                     }
                 }

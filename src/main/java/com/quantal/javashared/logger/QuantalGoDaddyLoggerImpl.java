@@ -9,8 +9,10 @@ import com.godaddy.logging.logger.LoggerImpl;
 import com.quantal.javashared.constants.CommonConstants;
 import com.quantal.javashared.dto.CommonLogFields;
 import com.quantal.javashared.dto.LogEvent;
+import com.quantal.javashared.dto.LogField;
+import com.quantal.javashared.dto.LoggerConfig;
 import com.quantal.javashared.dto.LogzioConfig;
-import com.quantal.javashared.exceptions.EventNotSuppliedException;
+import com.quantal.javashared.exceptions.LogFieldNotSuppliedException;
 import io.logz.sender.LogzioSender;
 import io.logz.sender.com.google.gson.JsonNull;
 import io.logz.sender.com.google.gson.JsonObject;
@@ -28,12 +30,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.quantal.javashared.constants.CommonConstants.EVENT_KEY;
 import static com.quantal.javashared.constants.CommonConstants.MARKER_KER;
 import static com.quantal.javashared.constants.CommonConstants.SUB_EVENT_KEY;
+import static com.quantal.javashared.constants.CommonConstants.TRACE_ID_MDC_KEY;
+import static java.util.stream.Collectors.joining;
 
 
 /**
@@ -41,12 +48,15 @@ import static com.quantal.javashared.constants.CommonConstants.SUB_EVENT_KEY;
  */
 public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogger {
 
-    protected boolean hasEvent;
+    //protected boolean hasEvent;
+    protected org.slf4j.Logger logger;
+    //protected boolean hasAllRequiredFields;
     protected LogzioSender sender;
-    protected LogzioConfig logzioConfig;
+    //protected LogzioConfig logzioConfig;
+    private LoggerConfig loggerConfig;
     private ObjectMapper jsonObjectMapper;
 
-    private final String EVENT_MSG="Event not supplied. Please supply an event via the %s method or with an 'event' key in the 'with' method";
+    private final String LOG_FIELD_NOT_FOUND_MSG ="Log field `%s` was not supplied. Please supply the log field `%s` via the '%s' method or via the`%s` key in the 'with' method";
     private boolean bSendToLogzio = false;
     private Map<String, Object> logzioJsonDataMap = new HashMap<>();
     private JsonObject jsonMessage;
@@ -54,15 +64,24 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     private CommonLogFields commonLogFields;
 
 
-    public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs, LogzioConfig logzioConfig) {
-        super(root, configs);
-        this.logzioConfig = logzioConfig;
-        this.configs = configs;
+    public QuantalGoDaddyLoggerImpl(Logger root, LoggerConfig loggerConfig) {
+        super(root, loggerConfig.getGoDadayLoggerConfig());
+        LogzioConfig logzioConfig = loggerConfig.getLogzioConfig();
+        this.configs = loggerConfig.getGoDadayLoggerConfig();
         this.jsonObjectMapper = new ObjectMapper();
-        commonFieldsMap = new HashMap<>();
+        this.commonFieldsMap = new HashMap<>();
+        this.loggerConfig = loggerConfig;
 
         if (logzioConfig != null)
             bSendToLogzio = true;
+
+        if (loggerConfig.isEventIsRequired()){
+            loggerConfig.getRequiredLogFields().putIfAbsent(EVENT_KEY, (args, dataMap) -> checkIfFieldsExistsInLog(args, EVENT_KEY, dataMap));
+        }
+
+        if (loggerConfig.isTraceIdIsRequired()){
+            loggerConfig.getRequiredLogFields().putIfAbsent(TRACE_ID_MDC_KEY, (args, dataMap) -> checkIfFieldsExistsInLog(args, TRACE_ID_MDC_KEY, dataMap));
+        }
 
         if(bSendToLogzio) {
             try {
@@ -83,58 +102,70 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
             }
 
         }
-
-
     }
 
     public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs) {
-        this(root, configs, QuantalLoggerFactory.createDefaultLogzioConfig("LOGIO_TOKEN", Optional.empty(), Optional.empty()));
+        this(root, new LoggerConfig()
+                        .builder()
+                        .goDadayLoggerConfig( configs)
+                        .logzioConfig(QuantalLoggerFactory.createDefaultLogzioConfig("LOGIO_TOKEN", Optional.empty(), Optional.empty()))
+                        .build()
+                );
 
     }
 
     @Override
     public Logger with(Object obj) {
-        if(obj instanceof LogEvent && !StringUtils.isEmpty(((LogEvent) obj).getEvent())){
+        /*if(obj instanceof LogEvent && !StringUtils.isEmpty(((LogEvent) obj).getEvent())){
 
             this.hasEvent = true;
+        }*/
+
+        if (obj instanceof LogField) {
+
+            //this.hasAllRequiredFields = isAllRequiredFieldsFound(this.loggerConfig.getRequiredLogFields(), Arrays.asList(obj), "").isEmpty();
         }
 
         JsonObject quantalLoggerJsonMessage = new JsonObject();
-        if (obj instanceof Map){
-            quantalLoggerJsonMessage = createJsonMessageFromList(Arrays.asList(obj));
-        }
-        else {
-            addToLogzioDataMap(obj);
-            quantalLoggerJsonMessage = createJsonMessageFromList(Arrays.asList(obj));
-            quantalLoggerJsonMessage = updateJsonMessage(this.jsonMessage, quantalLoggerJsonMessage);
-        }
-        Logger logger =  new AnnotatingLogger(root, this, obj, configs);
-        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, quantalLoggerJsonMessage, this.hasEvent, this.commonFieldsMap);
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.putAll(this.logzioJsonDataMap);
+        addToDataMap(dataMap, obj);
+        quantalLoggerJsonMessage = createJsonMessageFromList(Arrays.asList(obj));
+        quantalLoggerJsonMessage = updateJsonMessage(this.jsonMessage, quantalLoggerJsonMessage);
+
+
+        Logger logger = new AnnotatingLogger(this.root, this, obj, configs);
+        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, dataMap, this.commonFieldsMap);
         return quantalLogger;
     }
 
     @Override
     public Logger with(final String key, final Object value) {
-        if (!StringUtils.isEmpty(key) && !this.hasEvent) {
+        if (!StringUtils.isEmpty(key) /*&& !this.hasAllRequiredFields*/) {
 
-            if (!CommonConstants.EVENT_KEY.equals(key.toLowerCase().trim())) {
+            /*if (!CommonConstants.EVENT_KEY.equals(key.toLowerCase().trim())) {
                 hasEvent = false;
             } else {
                 hasEvent = true;
 
-            }
+            }*/
+            //this.hasAllRequiredFields = isAllRequiredFieldsFound(this.loggerConfig.getRequiredLogFields(), Arrays.asList(new LogField(key, value)), "").isEmpty();
         }
 
         if (jsonMessage == null)
             this.jsonMessage = new JsonObject();
          //jsonMessage.addProperty(key, value == null ? null : value.toString());
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.putAll(this.logzioJsonDataMap);
         JsonObject quantalLoggerjsonMsg =  new JsonObject();
         quantalLoggerjsonMsg.addProperty(key, value == null ? null : value.toString());
         this.jsonMessage.entrySet().forEach((entry) -> {
             quantalLoggerjsonMsg.addProperty(entry.getKey(), entry.getValue() == null ? null :  entry.getValue().getAsString());
+            addToDataMap(dataMap, new LogField(entry.getKey(), entry.getValue()));
         });
+
         Logger logger = super.with(key, value);
-        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, quantalLoggerjsonMsg, this.hasEvent, this.commonFieldsMap);
+        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger,  dataMap, this.commonFieldsMap);
         return quantalLogger;
     }
 
@@ -520,37 +551,63 @@ public void info(String msg) {
     }
 
     private void checkAndMaybeSendToELK(String msg, String methodName, List<Object> arguments){
-        checkAndMaybeThrowEventNotSuppliedException(methodName, arguments);
+        Set<String> requiredFields = loggerConfig
+                .getRequiredLogFields()
+                .keySet();
+        checkAndMaybeThrowLogFieldNotSuppliedException(methodName, arguments, requiredFields);
         checkAndSendToLogzio(msg, arguments);
     }
 
-    private void checkAndMaybeThrowEventNotSuppliedException(String methodName, List<Object> arguments) {
+    /**
+     * Will fill try and find the required fields supplied in the requiredFieldNames in one of arguments, MDC
+     * or logzioJsonDataMap
+     * @param methodName
+     * @param arguments
+     * @param requiredFieldNames
+     */
+    private void checkAndMaybeThrowLogFieldNotSuppliedException(String methodName, List<Object> arguments, Set<String> requiredFieldNames) {
 
-        if (arguments != null) {
-            //Object event = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
-            LogEvent event = tryGetEvent(arguments);
-            LogEvent subEvent = tryGetSubEvent(arguments);
+        if (requiredFieldNames != null) {
+            boolean hasAllRequiredFields = isAllRequiredFieldsFound(this.loggerConfig.getRequiredLogFields(), arguments,this.logzioJsonDataMap, "");
+            requiredFieldNames.forEach(logFieldName -> {
+                if (arguments != null) {
+                    //Object logField = arguments.stream().filter(arg -> arg instanceof LogEvent).findAny().orElse(null);
+                    LogField logField = tryGetLogField(arguments, logFieldName, this.logzioJsonDataMap);
 
-            if (!this.hasEvent && event == null) {
-                sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
-            }
 
-            if (event != null) {
-                this.with(EVENT_KEY, event == null ? null : event.getEvent());
-                this.with(SUB_EVENT_KEY, subEvent == null ? null : subEvent.getEvent());
-            }
-        } else if (!this.hasEvent) {
-            sendEventNotSuppliedExceptionToLogzioAndThrow(methodName);
+                    if (!hasAllRequiredFields && logField == null) {
+                        sendLogFieldNotSuppliedExceptionToLogzioAndThrow(logFieldName, methodName,arguments );
+                    }
+
+                    if (logField != null) {
+                        this.with(logFieldName, logField == null ? null : logField.getValue());
+                        if (logField.getKey().equalsIgnoreCase(EVENT_KEY)) {
+                            LogEvent subEvent = tryGetSubEvent(arguments);
+                            this.with(SUB_EVENT_KEY, subEvent == null ? null : subEvent.getEvent());
+                        }
+                    }
+                } else if (!hasAllRequiredFields) {
+                    sendLogFieldNotSuppliedExceptionToLogzioAndThrow(logFieldName, methodName, arguments);
+                }
+            });
         }
     }
 
+    /**
+     * Will send message to ELK /LOGZIO. All Data in logzioJsonDataMap and args param
+     * and all data in MDC will be  converted to keys in the document sent to ELK / Logzio
+     * @param msg
+     * @param args
+     */
     private void checkAndSendToLogzio(String msg, List<Object> args) {
         if (!bSendToLogzio)
             return;
 
-        LogEvent event = tryGetEvent(args);
+        //LogEvent event = (LogEvent) tryGetLogField(args, CommonConstants.EVENT_KEY);
+        //LogTraceId traceId = (LogTraceId) tryGetLogField(args, CommonConstants.TRACE_ID_MDC_KEY);
         LogEvent subEvent = tryGetSubEvent(args);
-        logzioJsonDataMap.put(EVENT_KEY,event == null ? null : event.getEvent());
+        //logzioJsonDataMap.put(EVENT_KEY,event == null ? null : event.getEvent());
+        //logzioJsonDataMap.put(CommonConstants.TRACE_ID_MDC_KEY, traceId == null ? null : traceId.getTraceId());
         logzioJsonDataMap.put(SUB_EVENT_KEY, subEvent == null ? null : subEvent.getEvent());
 
         Object[] argsArr = args == null ? null : args.toArray();
@@ -559,10 +616,11 @@ public void info(String msg) {
         JsonObject argsJsonMessage = createJsonMessageFromList(args);
         logzioJsonDataMap.putAll(commonFieldsMap);
         logzioJsonDataMap.putIfAbsent("msg", formattedMsg);
+        MDC.getCopyOfContextMap().forEach((key, value) -> logzioJsonDataMap.putIfAbsent(key, value));
         //logzioJsonDataMap.putIfAbsent("message", formattedMsg);
 
         if (args != null) {
-            args.forEach(this::addToLogzioDataMap);
+            args.forEach((arg) -> addToDataMap(logzioJsonDataMap, arg));
         }
         JsonObject logzioJsonDataMapMessage = createJsonMessageFromList(Arrays.asList(logzioJsonDataMap));
         JsonObject logzioDataAndArgsJsonMessage = updateJsonMessage(argsJsonMessage, logzioJsonDataMapMessage);
@@ -572,25 +630,35 @@ public void info(String msg) {
         resetDataContainers();
     }
 
-    private void addToLogzioDataMap(Object obj){
+    /**
+     * Add the given object to the dataMap
+     * @param dataMap
+     * @param obj
+     */
+    private void addToDataMap(Map<String, Object> dataMap, Object obj){
         String key = obj.getClass().getSimpleName();
 
-        if(!logzioJsonDataMap.containsKey(key)){
+        if(obj instanceof LogField) {
+            dataMap.putIfAbsent(((LogField) obj).getKey(), ((LogField)obj).getValue());
+        }
+        else if(!dataMap.containsKey(key)){
             Matcher matcher =  Pattern.compile("\\d*$").matcher(key);
             if (matcher.find()){
                 String group = matcher.group();
                 long objTypeCnt = StringUtils.isEmpty(group) ? 0L : Long.valueOf(group);
                 String newKey = key.substring(0, group.indexOf(group)).concat(String.valueOf(++objTypeCnt));
-                if(obj instanceof LogEvent) {
-                    logzioJsonDataMap.putIfAbsent(EVENT_KEY, ((LogEvent)obj).getEvent());
-                } else {
-                    logzioJsonDataMap.put(key.concat(newKey), obj);
-                }
-
+                dataMap.put(key.concat(newKey), obj);
             }
         }
     }
 
+    /**
+     * Create JsonObject from the list of args.
+     * At the moment, only objects which are of type Map<K,V> which are items of
+     * the the args param will be added to the JsonObject that is returned
+     * @param args
+     * @return
+     */
     private JsonObject createJsonMessageFromList(List<Object> args){
 
         final JsonObject jsonMessage = new JsonObject();
@@ -609,6 +677,13 @@ public void info(String msg) {
         return jsonMessage;
     }
 
+    /**
+     * Updates the target with the source message non destructively i.e. A new object
+     * is returned and source and target objects are left as is
+     * @param source
+     * @param target
+     * @return
+     */
     private JsonObject updateJsonMessage(JsonObject source, JsonObject target){
         JsonObject jsonObject = new JsonObject();
         if (source == null && target != null){
@@ -629,6 +704,13 @@ public void info(String msg) {
 
     }
 
+    /**
+     * Returns a SLF4J formatted message for output i.e. returns a message where
+     * `{}` placeholders have been replaced with thier correct values
+     * @param msg
+     * @param args
+     * @return
+     */
     private String getFormattedMessage(String msg, Object... args){
         return MessageFormatter.arrayFormat(msg, args).getMessage();
     }
@@ -655,14 +737,19 @@ public void info(String msg) {
                 });
     }
 
-    private QuantalLogger createImmutableQuantalGoDaddyLogger(Logger logger, JsonObject jsonMessage, boolean hasEvent, Map<String, Object> commonFieldsMap){
-        QuantalLogger quantalLogger =  new QuantalGoDaddyLoggerImpl(logger, this.configs, logzioConfig);
+    private QuantalLogger createImmutableQuantalGoDaddyLogger(Logger logger, Map<String, Object> dataMap, Map<String, Object> commonFieldsMap){
+        QuantalLogger quantalLogger =  new QuantalGoDaddyLoggerImpl(logger, this.loggerConfig);
         ((QuantalGoDaddyLoggerImpl)quantalLogger).setCommonFieldsMap(commonFieldsMap);
-        ((QuantalGoDaddyLoggerImpl)quantalLogger).setHasEvent(hasEvent);
-        ((QuantalGoDaddyLoggerImpl)quantalLogger).setJsonMessage(jsonMessage);
+        ((QuantalGoDaddyLoggerImpl)quantalLogger).setDataMap(dataMap);
         return quantalLogger;
     }
 
+    /**
+     * Special case method that tries to find the a subEvent in
+     * one of log methods args, MDC or dataMap
+     * @param args
+     * @return
+     */
     private LogEvent tryGetSubEvent(List<Object> args){
         if(this.logzioJsonDataMap != null && this.logzioJsonDataMap.get(SUB_EVENT_KEY) != null){
             return new LogEvent(this.logzioJsonDataMap.get(SUB_EVENT_KEY).toString());
@@ -671,7 +758,9 @@ public void info(String msg) {
         }
         Object subEvent = null;
         if (args != null ) {
-             subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
+             subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) &&
+                     ((LogEvent) arg).getEvent()!= null
+                     && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
             /*if(subEvent == null){
                 if(this.logzioJsonDataMap != null && !this.logzioJsonDataMap.isEmpty()){
                     subEvent = this.logzioJsonDataMap.get(EVENT_KEY);
@@ -680,15 +769,12 @@ public void info(String msg) {
                 }
             }*/
 
-            // If we still cant find the sub event, try and find it in the MDC
-            if (subEvent == null) {
-                subEvent = args.stream().filter(arg -> arg instanceof MDC)
-                        .findAny()
-                        .map(mdc -> ((MDC) mdc).get(EVENT_KEY))
-                        .orElse(MDC.get(EVENT_KEY));
-            }
         }
 
+        // If we still cant find the sub event, try and find it in the MDC
+        if (subEvent == null) {
+            subEvent = MDC.get(EVENT_KEY);
+        }
         // Return th
         if(subEvent instanceof LogEvent || subEvent == null) {
             if (subEvent == null)
@@ -704,69 +790,168 @@ public void info(String msg) {
         return new LogEvent(subEvent.toString());
     }
 
-    private LogEvent tryGetEvent(List<Object> args){
-        if(this.logzioJsonDataMap != null && this.logzioJsonDataMap.get(EVENT_KEY) != null){
-            return new LogEvent(this.logzioJsonDataMap.get(EVENT_KEY).toString());
-        } else if (this.jsonMessage != null && this.jsonMessage.get(EVENT_KEY) != null && this.jsonMessage.get(EVENT_KEY) != JsonNull.INSTANCE){
-            return new LogEvent(this.jsonMessage.get(EVENT_KEY).getAsString());
+    /**
+     * Tris to find the given logFieldName
+     * one of log methods args, MDC or dataMap
+     * @param args
+     * @param logFieldName
+     * @param dataMap
+     * @return
+     */
+    private LogField tryGetLogField(List<Object> args, String logFieldName, Map<String, Object> dataMap){
+        if(dataMap != null && dataMap.get(logFieldName) != null){
+            return new LogField(logFieldName, dataMap.get(logFieldName));
+        } else if (this.jsonMessage != null && this.jsonMessage.get(logFieldName) != null && this.jsonMessage.get(logFieldName) != JsonNull.INSTANCE){
+            return new LogField(logFieldName,this.jsonMessage.get(logFieldName).getAsString());
         }
-        Object event = null;
+        Object logField = null;
         if (args != null ) {
-            event = args.stream().filter(arg -> (arg instanceof LogEvent) && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
-            if(event == null){
-                if(this.logzioJsonDataMap != null && !this.logzioJsonDataMap.isEmpty()){
-                    event = this.logzioJsonDataMap.get(EVENT_KEY);
+            logField = args.stream().filter(arg -> (arg instanceof LogField) && ((LogField) arg).getKey().toString().equalsIgnoreCase(logFieldName)).findAny().orElse(null);
+            if(logField == null){
+                if(dataMap != null && !dataMap.isEmpty()){
+                    logField = dataMap.get(logFieldName);
                 } else if (this.jsonMessage != null && !this.jsonMessage.entrySet().isEmpty()){
-                    event = this.jsonMessage.get(EVENT_KEY);
+                    logField = this.jsonMessage.get(logFieldName);
                 }
             }
-
-            // If we still cant find the event in jsonMessage and logzioJsonDataMap,
-            // try and find it in the MDC
-            if (event == null) {
-                event = args.stream().filter(arg -> arg instanceof MDC)
-                        .findAny()
-                        .map(mdc -> ((MDC) mdc).get(EVENT_KEY))
-                        .orElse(MDC.get(EVENT_KEY));
-            }
         }
 
-        if(event instanceof LogEvent || event == null)
-            return  event == null ? null : (LogEvent) event;
+        // If we still cant find the logField in jsonMessage and logzioJsonDataMap,
+        // try and find it in the MDC
+        if (logField == null) {
+            logField = MDC.get(logFieldName);
+        }
 
-        return new LogEvent(event.toString());
+        if(logField instanceof LogField || logField == null)
+            return  logField == null ? null : (LogField) logField;
+
+        return new LogField(logFieldName,logField.toString());
     }
 
     private void resetDataContainers(){
         this.jsonMessage = createLogMessage();
         this.logzioJsonDataMap = new HashMap<>();
     }
-    private void sendEventNotSuppliedExceptionToLogzioAndThrow(String methodName){
-        String message = String.format(EVENT_MSG, methodName);
-        RuntimeException exception = new EventNotSuppliedException(message);
+
+    /**
+     * Will send a message to ELK / Logzio if any of the required fields cannot be
+     * found in one of log methods args, MDC or dataMap with a message that specifies
+     * the missing fields
+     * Will throw exception after sending the message
+     * @param logFieldName
+     * @param methodName
+     * @param arguments
+     */
+    private void sendLogFieldNotSuppliedExceptionToLogzioAndThrow(String logFieldName, String methodName, List<Object> arguments){
+        //String message = String.format(LOG_FIELD_NOT_FOUND_MSG, methodName);
+        //String message = constructFieldNotFoundErrorMsg(logFieldName, methodName);
+        String message = checkAndReturnAllMissingRequiredFieldsErrors(this.loggerConfig.getRequiredLogFields(), arguments, this.logzioJsonDataMap, methodName)
+                .values()
+                .stream()
+                .collect(joining("\n"));
+        JsonObject jsonMessage = null;
+        RuntimeException exception = new LogFieldNotSuppliedException(message);
         try {
-            this.with(EVENT_KEY, exception.getClass().getName())
+            Map<String, Object> dataMap = new HashMap<>();
+            if (loggerConfig.isAddMissingFieldsToElkLogs()) {
+                loggerConfig.getRequiredLogFields().forEach((fieldName, findFunction) -> {
+                    LogField logField = tryGetLogField(arguments,fieldName,this.logzioJsonDataMap);
+                    dataMap.putIfAbsent(fieldName, logField == null ? null : logField.getValue());
+                });
+            }
+            dataMap.put("msg", exception.getMessage());
+            dataMap.put("stack", jsonObjectMapper.writeValueAsString(exception.getStackTrace()));
+            jsonMessage = createJsonMessageFromList(Arrays.asList(dataMap));
+            /*this.with(logFieldName, exception.getClass().getName())
             .with("msg", exception.getMessage())
             .with("stack", jsonObjectMapper.writeValueAsString(exception.getStackTrace()));
+            */
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        logzioJsonDataMap.put("Test", "the test key");
         sender.send(jsonMessage);
         super.error(message, exception);
         resetDataContainers();
-        throw new EventNotSuppliedException(message);
+        throw new LogFieldNotSuppliedException(message);
     }
 
-    public void setHasEvent(boolean hasEvent){
-        this.hasEvent = hasEvent;
-    }
 
     public void setCommonFieldsMap(Map<String, Object> commonFieldsMap){
         this.commonFieldsMap = commonFieldsMap;
     }
 
-    public void setJsonMessage(JsonObject jsonMessage){
-        this.jsonMessage = jsonMessage;
+    public void setDataMap(Map<String, Object> dataMap){
+
+        this.logzioJsonDataMap.putAll(dataMap);
     }
+
+    /**
+     * Returns true if all the fieldName can be found one MDC, log method args or
+     * the supplied dataMap
+     * @param args
+     * @param fieldName
+     * @param dataMap
+     * @return
+     */
+    public boolean checkIfFieldsExistsInLog(List args, String fieldName, Map<String, Object> dataMap){
+        LogField field = tryGetLogField(args, fieldName, dataMap);
+        if (field == null && this.logzioJsonDataMap != null){
+            field = (LogField) this.logzioJsonDataMap
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> entry.getKey().equalsIgnoreCase(fieldName))
+                    .map(entry -> entry.getValue())
+                    .findFirst()
+                    .orElse(null);
+        }
+        if(field != null) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns a map containg error messages for all the required fields that cannot
+     * be found in one of log methods args, MDC or dataMap
+     * @param allRequiredFields
+     * @param args
+     * @param dataMap
+     * @param methodName
+     * @return
+     */
+    private Map<String, String> checkAndReturnAllMissingRequiredFieldsErrors(Map<String, BiFunction<List<Object>,Map<String, Object>, Boolean>> allRequiredFields, List<Object> args, Map<String, Object> dataMap, String methodName) {
+        Map<String, String> notFoundMap = new HashMap<>();
+        if (allRequiredFields != null) {
+
+            notFoundMap = allRequiredFields
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> entry.getValue().apply(args, dataMap) == false)
+                    .collect(Collectors.toMap(entry -> entry.getKey(), entry -> constructFieldNotFoundErrorMsg(entry.getKey(), methodName)));
+        }
+        return notFoundMap;
+    }
+
+    /**
+     * Returns true if all the required fields can be found in one of log methods args, MDC or dataMap
+     * @param allRequiredFields
+     * @param args
+     * @param dataMap
+     * @param methodName
+     * @return
+     */
+    private boolean isAllRequiredFieldsFound(Map<String, BiFunction<List<Object>, Map<String, Object>, Boolean>> allRequiredFields, List<Object> args,  Map<String, Object> dataMap, String methodName){
+        return checkAndReturnAllMissingRequiredFieldsErrors(allRequiredFields, args,dataMap, methodName).isEmpty();
+    }
+
+    /**
+     * Constructs LogFieldNotFoundException message
+     * @param field
+     * @param methodName
+     * @return
+     */
+    private String constructFieldNotFoundErrorMsg(String field, String methodName){
+        return String.format(LOG_FIELD_NOT_FOUND_MSG, field, field,methodName, field);
+    }
+
 }

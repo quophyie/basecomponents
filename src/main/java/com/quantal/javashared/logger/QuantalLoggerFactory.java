@@ -3,6 +3,7 @@ package com.quantal.javashared.logger;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggingConfigs;
 import com.quantal.javashared.dto.CommonLogFields;
+import com.quantal.javashared.dto.LoggerConfig;
 import com.quantal.javashared.dto.LogzioConfig;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ReflectionUtils;
@@ -20,33 +21,30 @@ import java.util.concurrent.ScheduledExecutorService;
 public class QuantalLoggerFactory {
 
 
-    public static QuantalLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields) {
-        Logger logger =  LoggingConfigs.getCurrent().getDefaultLogger(clazz);
-        logger = standardizeLogLine(logger, commonLogFields);
+    private static final int RECURSIVE_LEVEL = 100;
+    public static QuantalLogger getLogger(Class<?> clazz, LoggerConfig loggerConfig) {
+        if (loggerConfig.getGoDadayLoggerConfig() == null ){
+            loggerConfig.setGoDadayLoggerConfig(LoggingConfigs.getCurrent());
+            loggerConfig.setGoDadayLoggerConfig(loggerConfig.getGoDadayLoggerConfig().withRecursiveLevel(RECURSIVE_LEVEL));
+        }
+        Logger logger =   loggerConfig.getGoDadayLoggerConfig().getCurrent().getDefaultLogger(clazz);
+        logger = standardizeLogLine(logger, loggerConfig.getCommonLogFields());
         QuantalLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, LoggingConfigs.getCurrent());
-        quantalGoDaddyLogger.setCommoFields(commonLogFields);
+        quantalGoDaddyLogger.setCommoFields(loggerConfig.getCommonLogFields());
         return quantalGoDaddyLogger;
     }
+    //public static QuantalLogger getLogzioLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs, LogzioConfig logzioConfig) {
+    public static QuantalLogger getLogzioLogger(Class<?> clazz, LoggerConfig loggerConfig) {
 
-    public static QuantalLogger getLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs) {
-        Logger logger =  configs.getConfiguredLogger(clazz, configs);
-        logger = standardizeLogLine(logger, commonLogFields);
-        QuantalLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, configs);
-        quantalGoDaddyLogger.setCommoFields(commonLogFields);
+        if (loggerConfig.getGoDadayLoggerConfig() == null ){
+            loggerConfig.setGoDadayLoggerConfig(LoggingConfigs.getCurrent());
+            loggerConfig.setGoDadayLoggerConfig(loggerConfig.getGoDadayLoggerConfig().withRecursiveLevel(RECURSIVE_LEVEL));
+        }
+        Logger logger =  loggerConfig.getGoDadayLoggerConfig().getConfiguredLogger(clazz, loggerConfig.getGoDadayLoggerConfig());
+        logger = standardizeLogLine(logger, loggerConfig.getCommonLogFields());
+        QuantalLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, loggerConfig);
+        quantalGoDaddyLogger.setCommoFields(loggerConfig.getCommonLogFields());
         return quantalGoDaddyLogger;
-    }
-
-    public static QuantalLogger getLogzioLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs, LogzioConfig logzioConfig) {
-        Logger logger =  configs.getConfiguredLogger(clazz, configs);
-        logger = standardizeLogLine(logger, commonLogFields);
-        QuantalLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, configs, logzioConfig);
-        quantalGoDaddyLogger.setCommoFields(commonLogFields);
-        return quantalGoDaddyLogger;
-    }
-
-    public static QuantalLogger getLogzioLogger(Class<?> clazz, CommonLogFields commonLogFields, LogzioConfig logzioConfig) {
-
-        return getLogzioLogger(clazz, commonLogFields, LoggingConfigs.getCurrent(), logzioConfig);
     }
 
     public static LogzioConfig createDefaultLogzioConfig(String logzioToken, Optional<Boolean> showDebugInfo, Optional<ScheduledExecutorService> tasksExecutor){
@@ -55,12 +53,12 @@ public class QuantalLoggerFactory {
                 "java",
                 5,
                 98,
-                new File("logio/buffer"),
+                new File("logzio/buffer"),
                 "https://listener.logz.io:8071",
                 10 * 1000,
                 10 * 1000,
                 showDebugInfo.orElse(false),
-                new LogzioStatusReporter(LoggerFactory.getLogger(QuantalLogger.class)),
+                new LogzioStatusReporter(LoggerFactory.getLogger(LogzioStatusReporter.class)),
                 tasksExecutor.orElse(Executors.newScheduledThreadPool(2)),
                 30
         );

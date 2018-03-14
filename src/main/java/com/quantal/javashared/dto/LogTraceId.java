@@ -1,7 +1,6 @@
 package com.quantal.javashared.dto;
 
 import com.quantal.javashared.constants.CommonConstants;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,23 +12,24 @@ import lombok.EqualsAndHashCode;
 @Data
 @Builder
 @EqualsAndHashCode(callSuper = true)
-public class LogEvent extends LogField{
-    private String event;
+public class LogTraceId extends LogField{
+    private String traceId;
     //private String msg;
 
-    public LogEvent(String event){
+    public LogTraceId(String traceId){
         this();
-        super.setValue(event);
-        this.event = event;
+        super.setValue(traceId);
+        this.traceId = traceId;
     }
 
-    public LogEvent(){
-        super.setKey(CommonConstants.EVENT_KEY);
+    public LogTraceId(){
+        super();
+        super.setKey(CommonConstants.TRACE_ID_MDC_KEY);
     }
 
     @Override
     public void setKey(String key) {
-        throw new IllegalArgumentException(String.format("Event key name cannot be changed. It will always remain as %s", CommonConstants.EVENT_KEY));
+        throw new IllegalArgumentException(String.format("TraceId key name cannot be changed. It will always remain as %s", CommonConstants.TRACE_ID_MDC_KEY));
 
     }
     @Override
@@ -37,12 +37,12 @@ public class LogEvent extends LogField{
         if (!(value instanceof String))
             throw new IllegalArgumentException("value must be a string");
         super.setValue(value);
-        this.event = (String) value;
+        this.traceId = (String) value;
 
     }
 
-    public static class LogEventBuilder extends LogFieldBuilder{
-        LogEventBuilder(){
+    public static class LogTraceIdBuilder extends LogFieldBuilder{
+        LogTraceIdBuilder(){
             super();
         }
     }

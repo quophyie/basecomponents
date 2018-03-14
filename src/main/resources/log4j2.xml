@@ -53,13 +53,26 @@
             <AppenderRef ref="SpringBoot-File-Appender"/>
             <AppenderRef ref="Console-Appender"/>
         </Logger>
+
         <Logger name="com.quantal" level="trace" additivity="false">
+            <AppenderRef ref="App-File-Appender"/>
+            <!--<AppenderRef ref="Json-File-Appender"/>-->
+            <AppenderRef ref="Console-Appender" level="trace"/>
+        </Logger>
+
+        <Logger name="com.quantal.javashared.logger.LogzioStatusReporter" level="warn" additivity="false">
+            <AppenderRef ref="App-File-Appender"/>
+            <!--<AppenderRef ref="Json-File-Appender"/>-->
+            <AppenderRef ref="Console-Appender" level="warn"/>
+        </Logger>
+
+        <Logger name="com.godaddy" level="warn" additivity="false">
             <AppenderRef ref="App-File-Appender"/>
             <!--<AppenderRef ref="Json-File-Appender"/>-->
             <AppenderRef ref="Console-Appender"/>
         </Logger>
         <Root>
-            <AppenderRef ref="Console-Appender"/>
+            <AppenderRef ref="Console-Appender" level="trace"/>
         </Root>
     </Loggers>
 </Configuration>
