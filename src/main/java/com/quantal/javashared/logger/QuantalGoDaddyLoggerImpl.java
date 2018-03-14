@@ -159,6 +159,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
         dataMap.putAll(this.logzioJsonDataMap);
         JsonObject quantalLoggerjsonMsg =  new JsonObject();
         quantalLoggerjsonMsg.addProperty(key, value == null ? null : value.toString());
+        addToDataMap(dataMap, new LogField(key,  value == null ? null : value.toString()));
         this.jsonMessage.entrySet().forEach((entry) -> {
             quantalLoggerjsonMsg.addProperty(entry.getKey(), entry.getValue() == null ? null :  entry.getValue().getAsString());
             addToDataMap(dataMap, new LogField(entry.getKey(), entry.getValue()));
@@ -567,6 +568,11 @@ public void info(String msg) {
      */
     private void checkAndMaybeThrowLogFieldNotSuppliedException(String methodName, List<Object> arguments, Set<String> requiredFieldNames) {
 
+        if (!bSendToLogzio) {
+            resetDataContainers();
+            return;
+        }
+
         if (requiredFieldNames != null) {
             boolean hasAllRequiredFields = isAllRequiredFieldsFound(this.loggerConfig.getRequiredLogFields(), arguments,this.logzioJsonDataMap, "");
             requiredFieldNames.forEach(logFieldName -> {
@@ -600,8 +606,10 @@ public void info(String msg) {
      * @param args
      */
     private void checkAndSendToLogzio(String msg, List<Object> args) {
-        if (!bSendToLogzio)
+        if (!bSendToLogzio) {
+            resetDataContainers();
             return;
+        }
 
         //LogEvent event = (LogEvent) tryGetLogField(args, CommonConstants.EVENT_KEY);
         //LogTraceId traceId = (LogTraceId) tryGetLogField(args, CommonConstants.TRACE_ID_MDC_KEY);
