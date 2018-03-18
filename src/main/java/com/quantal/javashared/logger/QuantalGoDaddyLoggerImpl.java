@@ -17,6 +17,9 @@ import io.logz.sender.LogzioSender;
 import io.logz.sender.com.google.gson.JsonNull;
 import io.logz.sender.com.google.gson.JsonObject;
 import io.logz.sender.exceptions.LogzioParameterErrorException;
+import ma.glasnost.orika.MapperFacade;
+import ma.glasnost.orika.MapperFactory;
+import ma.glasnost.orika.impl.DefaultMapperFactory;
 import org.slf4j.MDC;
 import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
@@ -25,6 +28,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +59,9 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     //protected LogzioConfig logzioConfig;
     private LoggerConfig loggerConfig;
     private ObjectMapper jsonObjectMapper;
+    private MapperFactory orikaMapperFactory = new DefaultMapperFactory.Builder().build();
+    private MapperFacade orikaMapper = orikaMapperFactory.getMapperFacade();
+
 
     private final String LOG_FIELD_NOT_FOUND_MSG ="Log field `%s` was not supplied. Please supply the log field `%s` via the '%s' method or via the`%s` key in the 'with' method";
     private boolean bSendToLogzio = false;
@@ -556,6 +563,7 @@ public void info(String msg) {
     }
 
     private void checkAndMaybeSendToELK(String msg, String methodName, List<Object> arguments){
+        this.with("time", Instant.now());
         Set<String> requiredFields = loggerConfig
                 .getRequiredLogFields()
                 .keySet();
@@ -626,6 +634,9 @@ public void info(String msg) {
         String formattedMsg = getFormattedMessage(msg, argsArr);
 
         JsonObject argsJsonMessage = createJsonMessageFromList(args);
+
+
+        commonFieldsMap.put("time", Instant.now());
         logzioJsonDataMap.putAll(commonFieldsMap);
         logzioJsonDataMap.putIfAbsent("msg", formattedMsg);
         MDC.getCopyOfContextMap().forEach((key, value) -> logzioJsonDataMap.putIfAbsent(key, value));
@@ -735,8 +746,8 @@ public void info(String msg) {
     }
 
     @Override
-    public void setCommoFields(CommonLogFields commonLogFields) {
-        this.commonLogFields = commonLogFields;
+    public void setCommonFields(CommonLogFields commonLogFields) {
+        this.commonLogFields = orikaMapper.map(commonLogFields, CommonLogFields.class);
         Arrays.asList(ReflectionUtils.getAllDeclaredMethods(commonLogFields.getClass()))
                 .stream()
                 .filter(method -> method.getName().startsWith("get") &&  !method.getName().equalsIgnoreCase("getClass"))
@@ -875,7 +886,9 @@ public void info(String msg) {
             }
             dataMap.put("msg", exception.getMessage());
             dataMap.put("stack", jsonObjectMapper.writeValueAsString(exception.getStackTrace()));
+            dataMap.put("time", Instant.now());
             jsonMessage = createJsonMessageFromList(Arrays.asList(dataMap));
+
             /*this.with(logFieldName, exception.getClass().getName())
             .with("msg", exception.getMessage())
             .with("stack", jsonObjectMapper.writeValueAsString(exception.getStackTrace()));
@@ -891,7 +904,7 @@ public void info(String msg) {
 
 
     public void setCommonFieldsMap(Map<String, Object> commonFieldsMap){
-        this.commonFieldsMap = commonFieldsMap;
+        this.commonFieldsMap.putAll(commonFieldsMap);
     }
 
     public void setDataMap(Map<String, Object> dataMap){

@@ -16,5 +16,5 @@ public interface QuantalLogger extends Logger {
     }
 
     CommonLogFields getCommoFields();
-    void setCommoFields(CommonLogFields commonLogFields);
+    void setCommonFields(CommonLogFields commonLogFields);
 }
