@@ -121,6 +121,8 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
             this.hasEvent = true;
         }*/
 
+        if(obj == null)
+            return this;
         if (obj instanceof LogField) {
 
             //this.hasAllRequiredFields = isAllRequiredFieldsFound(this.loggerConfig.getRequiredLogFields(), Arrays.asList(obj), "").isEmpty();
@@ -141,6 +143,8 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
     @Override
     public Logger with(final String key, final Object value) {
+        if (StringUtils.isEmpty(key) )
+            return this;
         if (!StringUtils.isEmpty(key) /*&& !this.hasAllRequiredFields*/) {
 
             /*if (!CommonConstants.EVENT_KEY.equals(key.toLowerCase().trim())) {
@@ -644,6 +648,8 @@ public void info(String msg) {
      * @param obj
      */
     private void addToDataMap(Map<String, Object> dataMap, Object obj){
+        if (obj == null)
+            return;
         String key = obj.getClass().getSimpleName();
 
         if(obj instanceof LogField) {
