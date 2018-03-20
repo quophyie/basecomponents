@@ -1,5 +1,6 @@
 package com.quantal.javashared.controller;
 
+import com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders;
 import com.quantal.javashared.dto.CommonLogFields;
 import com.quantal.javashared.dto.LogEvent;
 import com.quantal.javashared.dto.LogTraceId;
@@ -14,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/test")
-public final class TestController extends BaseControllerAsync{
+//@EnforceRequiredHeaders
+public class TestController extends BaseControllerAsync{
 
 
     private QuantalLogger logger = QuantalLoggerFactory.getLogger(this.getClass(), LoggerConfig.builder().commonLogFields( new CommonLogFields()).build());
@@ -27,5 +29,14 @@ public final class TestController extends BaseControllerAsync{
 
         logger.info("Testing log {}","the param", new LogEvent("TEST_EVENT"), new LogTraceId(String.valueOf(System.currentTimeMillis())), new ResponseDto("Amessage",300, "SomeString"));
         return "GET success";
+    }
+
+
+    @EnforceRequiredHeaders
+    @GetMapping({"/requires-header", "/requires-header/"})
+    public String requiresHeader(){
+
+        logger.info("Testing {} annotation",EnforceRequiredHeaders.class, new LogEvent("TEST_EVENT"), new LogTraceId(String.valueOf(System.currentTimeMillis())), new ResponseDto("Amessage",300, "SomeString"));
+        return "GET requiresheader";
     }
 }

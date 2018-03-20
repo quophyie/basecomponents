@@ -8,7 +8,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.annotation.AnnotationUtils;
 import retrofit2.http.Header;
 
@@ -25,7 +24,7 @@ import static java.util.stream.Collectors.joining;
 public class RetrofitRequiredHeadersEnforcerAspect {
 
     private final Set<String> headersToCheckFor;
-    private final Map<String, Boolean> foundHeaders;
+    private Map<String, Boolean> foundHeaders;
 
     public RetrofitRequiredHeadersEnforcerAspect(){
         this.headersToCheckFor = new HashSet<>();
@@ -46,26 +45,26 @@ public class RetrofitRequiredHeadersEnforcerAspect {
         MethodSignature signature = (MethodSignature) pjp.getSignature();
         Method method = signature.getMethod();
         Annotation[][] annotations = method.getParameterAnnotations();
+        String[] annotationVals = null;
 
-        if(method.getDeclaringClass().isAnnotationPresent(EnforceRequiredHeaders.class)){
+        Set<String> toCheckFor = null;
 
-        }
-
-
-         Set<String> toCheckFor = null;
-        for (Annotation[] annotation : annotations) {
-            Annotation annotationToCheckFoor = annotation[0];
-            if (annotationToCheckFoor != null && annotationToCheckFoor instanceof EnforceRequiredHeaders) {
-                String[] annotationVals = (String[]) AnnotationUtils.getValue(annotationToCheckFoor);
-                for(String annotationVal: annotationVals) {
-                    toCheckFor = new HashSet<String>() {{
-                        add(annotationVal.toUpperCase());
-                    }};
-                }
-
+        if(method.getDeclaringClass().isAnnotationPresent(EnforceRequiredHeaders.class)
+                || AnnotationUtils.findAnnotation(method,  EnforceRequiredHeaders.class) != null){
+            if(method.getDeclaringClass().isAnnotationPresent(EnforceRequiredHeaders.class)) {
+                annotationVals = (String[]) AnnotationUtils.getValue(AnnotationUtils.findAnnotation(method.getDeclaringClass(), EnforceRequiredHeaders.class));
+            } else {
+                annotationVals = (String[]) AnnotationUtils.getValue(AnnotationUtils.findAnnotation(method, EnforceRequiredHeaders.class));
             }
-
+            toCheckFor = new HashSet<>();
+            for(String annotationVal: annotationVals) {
+                toCheckFor.add(annotationVal.toUpperCase());
+            }
+            foundHeaders = new HashMap<>();
+            toCheckFor.forEach((entry)-> this.foundHeaders.put(entry.toUpperCase(), false));
         }
+
+
         for (Annotation[] annotation : annotations) {
             Annotation header = annotation[0];
             if (header != null && header instanceof Header) {
@@ -83,12 +82,12 @@ public class RetrofitRequiredHeadersEnforcerAspect {
 
 
         if (!bAllHeadersFound) {
-            String msgPattern = "Method %s requires paramter(s) with the annotation %s";
+            String msgPattern = "Method %s.%s requires a parameter with the annotation %s that has a value '%s'";
             String errMsg = foundHeaders
                     .entrySet()
                     .stream()
                     .filter(entry -> entry.getValue() == false)
-                    .map(entry -> String.format(msgPattern, method.getName(), entry.getKey()))
+                    .map(entry -> String.format(msgPattern,method.getDeclaringClass().getName(),method.getName(), Header.class.getName(), entry.getKey()))
                     .collect(joining(".\n"));
 
             throw new HeaderNotFoundException(errMsg);
@@ -100,7 +99,7 @@ public class RetrofitRequiredHeadersEnforcerAspect {
 
     }
 
-    @Pointcut("execution(* com.quantal..service.api..*(..)) &&" +
+    @Pointcut("(execution(* com.quantal..service.api..*(..)) || execution(* com.quantal.javashared.controller..*(..)))&&" +
             " (" +
             "@target(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
             "|| @within(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
