@@ -149,9 +149,9 @@ CommonLogFields commonLogFields =  new CommonLogFields();
 		commonLogFields.setFrameworkVersion(new String("1.0.1"));
 		commonLogFields.setFramework(1.00);
 		LoggerConfig loggerConfig = LoggerConfig.builder()
-                  .commonLogFields(commonLogFields)
-				  .logzioConfig(QuantalLoggerFactory.createDefaultLogzioConfig("MY_LOGZIO_TOKEN", Optional.of(true), Optional.empty()))
-				   .build();
+                                                .commonLogFields(commonLogFields)
+				                                .logzioConfig(QuantalLoggerFactory.createDefaultLogzioConfig("MY_LOGZIO_TOKEN", Optional.of(true), Optional.empty()))
+				                                .build();
 		QuantalLogger logger = QuantalLoggerFactory.getLogzioLogger(MyClass.class, loggerConfig);
 		Exception nullPointerEx = new NullPointerException("Some NullPointerException");
 		logger.throwing(nullPointerEx, new LogEvent("EXCEPTION_EVENT"), new LogField(SUB_EVENT_KEY, String.format("SOME_EX_SUBEVENT %s", nullPointerEx.getMessage())), new LogTraceId("TEST_EX_TRACE_ID"));
