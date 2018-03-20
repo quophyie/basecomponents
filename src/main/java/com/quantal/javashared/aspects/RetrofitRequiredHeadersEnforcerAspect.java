@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.annotation.AnnotationUtils;
 import retrofit2.http.Header;
 
@@ -99,7 +100,12 @@ public class RetrofitRequiredHeadersEnforcerAspect {
 
     }
 
-    @Pointcut("@within(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
-            "|| @target(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)")
+    @Pointcut("execution(* com.quantal..service.api..*(..)) &&" +
+            " (" +
+            "@target(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
+            "|| @within(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
+            "|| @annotation(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
+
+            ")")
     public void allRetrofitInterfaces(){}
 }

@@ -1,5 +1,6 @@
 package com.quantal;
 
+import com.quantal.javashared.aspects.RetrofitRequiredHeadersEnforcerAspect;
 import com.quantal.javashared.dto.CommonLogFields;
 import com.quantal.javashared.dto.LogEvent;
 import com.quantal.javashared.dto.LogField;
@@ -12,21 +13,37 @@ import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.slf4j.MDC;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.quantal.javashared.constants.CommonConstants.EVENT_KEY;
 import static com.quantal.javashared.constants.CommonConstants.SUB_EVENT_KEY;
 import static com.quantal.javashared.constants.CommonConstants.TRACE_ID_MDC_KEY;
 
 @SpringBootApplication
+@EnableAspectJAutoProxy
 public class BasecomponentsApplication {
 
+	@Bean
+	public RetrofitRequiredHeadersEnforcerAspect requestHeadersAspect(){
+
+		Set<String> headers = new HashSet<>();
+		headers.add("X-Event");
+		headers.add("X-TraceId");
+		RetrofitRequiredHeadersEnforcerAspect requestHeadersAspect = new RetrofitRequiredHeadersEnforcerAspect(headers);
+		return  requestHeadersAspect;
+
+	}
 	public static void main(String[] args) throws Throwable {
 
 		//Uncommment to run
-		//SpringApplication.run(BasecomponentsApplication.class, args);
+		SpringApplication.run(BasecomponentsApplication.class, args);
+
 		CommonLogFields commonLogFields =  new CommonLogFields();
 		commonLogFields.setFrameworkVersion(new String("1.0.1"));
 		commonLogFields.setFramework(1.00);
