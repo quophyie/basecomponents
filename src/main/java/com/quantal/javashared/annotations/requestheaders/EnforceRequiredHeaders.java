@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface EnforceRequiredHeaders {
     String[] value() default {"X-EVENT", "X-TRACEID"};
+    boolean replaceDefaults() default true;
 }

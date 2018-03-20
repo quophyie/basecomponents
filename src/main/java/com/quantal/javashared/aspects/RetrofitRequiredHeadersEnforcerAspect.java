@@ -48,19 +48,29 @@ public class RetrofitRequiredHeadersEnforcerAspect {
         String[] annotationVals = null;
 
         Set<String> toCheckFor = null;
+        boolean bReplaceDefaults = false;
 
         if(method.getDeclaringClass().isAnnotationPresent(EnforceRequiredHeaders.class)
                 || AnnotationUtils.findAnnotation(method,  EnforceRequiredHeaders.class) != null){
+            Annotation annot = null;
             if(method.getDeclaringClass().isAnnotationPresent(EnforceRequiredHeaders.class)) {
-                annotationVals = (String[]) AnnotationUtils.getValue(AnnotationUtils.findAnnotation(method.getDeclaringClass(), EnforceRequiredHeaders.class));
+                AnnotationUtils.findAnnotation(method.getDeclaringClass(), EnforceRequiredHeaders.class);
+                annotationVals = (String[]) AnnotationUtils.getValue(annot);
             } else {
-                annotationVals = (String[]) AnnotationUtils.getValue(AnnotationUtils.findAnnotation(method, EnforceRequiredHeaders.class));
+                annot = AnnotationUtils.findAnnotation(method, EnforceRequiredHeaders.class);
+                annotationVals = (String[]) AnnotationUtils.getValue(annot);
             }
             toCheckFor = new HashSet<>();
+            if(annot != null) {
+                bReplaceDefaults = ((EnforceRequiredHeaders) annot).replaceDefaults();
+            }
+
             for(String annotationVal: annotationVals) {
                 toCheckFor.add(annotationVal.toUpperCase());
             }
-            foundHeaders = new HashMap<>();
+            if (bReplaceDefaults) {
+                foundHeaders = new HashMap<>();
+            }
             toCheckFor.forEach((entry)-> this.foundHeaders.put(entry.toUpperCase(), false));
         }
 

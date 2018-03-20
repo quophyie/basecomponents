@@ -31,11 +31,7 @@ public class BasecomponentsApplication {
 
 	@Bean
 	public RetrofitRequiredHeadersEnforcerAspect requestHeadersAspect(){
-
-		Set<String> headers = new HashSet<>();
-		headers.add("X-Event");
-		headers.add("X-TraceId");
-		RetrofitRequiredHeadersEnforcerAspect requestHeadersAspect = new RetrofitRequiredHeadersEnforcerAspect(headers);
+		RetrofitRequiredHeadersEnforcerAspect requestHeadersAspect = new RetrofitRequiredHeadersEnforcerAspect();
 		return  requestHeadersAspect;
 
 	}
