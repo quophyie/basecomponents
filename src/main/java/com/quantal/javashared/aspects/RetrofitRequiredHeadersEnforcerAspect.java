@@ -26,6 +26,10 @@ public class RetrofitRequiredHeadersEnforcerAspect {
     private final Set<String> headersToCheckFor;
     private final Map<String, Boolean> foundHeaders;
 
+    public RetrofitRequiredHeadersEnforcerAspect(){
+        this.headersToCheckFor = new HashSet<>();
+        foundHeaders = new HashMap<>();
+    }
     public RetrofitRequiredHeadersEnforcerAspect(Set<String> headersToCheckFor){
 
         this.headersToCheckFor = headersToCheckFor;
