@@ -109,7 +109,7 @@ public class RetrofitRequiredHeadersEnforcerAspect {
 
     }
 
-    @Pointcut("(execution(* com.quantal..services.api..*(..)) || execution(* com.quantal.javashared.controller..*(..)))&&" +
+    @Pointcut("(execution(* com.quantal..services.api..*(..)) || execution (* com.quantal..services.api..*.*(..)) || execution(* com.quantal.javashared.controller..*(..)))&&" +
             " (" +
             "@target(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
             "|| @within(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
