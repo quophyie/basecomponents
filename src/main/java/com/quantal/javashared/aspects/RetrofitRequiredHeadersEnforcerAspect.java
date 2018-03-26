@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.annotation.AnnotationUtils;
 import retrofit2.http.Header;
 
@@ -21,16 +22,16 @@ import java.util.Set;
 import static java.util.stream.Collectors.joining;
 
 @Aspect
+@Configurable
 public class RetrofitRequiredHeadersEnforcerAspect {
 
     private final Set<String> headersToCheckFor;
     private Map<String, Boolean> foundHeaders;
     private  static  String POINTCUT_EXPRESSION = "";
-    private  static   final String POINTCUT_EXPRESSION_1 = POINTCUT_EXPRESSION;
 
     public RetrofitRequiredHeadersEnforcerAspect(){
         this.headersToCheckFor = new HashSet<>();
-        foundHeaders = new HashMap<>();
+        this.foundHeaders = new HashMap<>();
     }
     public RetrofitRequiredHeadersEnforcerAspect(Set<String> headersToCheckFor, String pointcut_expression){
 
