@@ -25,7 +25,7 @@ import static com.quantal.javashared.constants.CommonConstants.EVENT_KEY;
 import static com.quantal.javashared.constants.CommonConstants.SUB_EVENT_KEY;
 import static com.quantal.javashared.constants.CommonConstants.TRACE_ID_MDC_KEY;
 
-@SpringBootApplication
+//@SpringBootApplication
 @EnableAspectJAutoProxy
 public class BasecomponentsApplication {
 
