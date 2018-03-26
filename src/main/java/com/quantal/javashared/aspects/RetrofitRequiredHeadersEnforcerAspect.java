@@ -25,14 +25,18 @@ public class RetrofitRequiredHeadersEnforcerAspect {
 
     private final Set<String> headersToCheckFor;
     private Map<String, Boolean> foundHeaders;
+    private  static  String POINTCUT_EXPRESSION = "";
+    private  static   final String POINTCUT_EXPRESSION_1 = POINTCUT_EXPRESSION;
 
-    public RetrofitRequiredHeadersEnforcerAspect(){
+    public RetrofitRequiredHeadersEnforcerAspect(String pointcutExpression){
+        POINTCUT_EXPRESSION = pointcutExpression;
         this.headersToCheckFor = new HashSet<>();
         foundHeaders = new HashMap<>();
     }
-    public RetrofitRequiredHeadersEnforcerAspect(Set<String> headersToCheckFor){
+    public RetrofitRequiredHeadersEnforcerAspect(Set<String> headersToCheckFor, String pointcut_expression){
 
         this.headersToCheckFor = headersToCheckFor;
+        POINTCUT_EXPRESSION = pointcut_expression;
         foundHeaders = new HashMap<>();
         if (headersToCheckFor != null){
             headersToCheckFor.forEach( header ->foundHeaders.put(header.toUpperCase(), false));
