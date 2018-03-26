@@ -28,8 +28,7 @@ public class RetrofitRequiredHeadersEnforcerAspect {
     private  static  String POINTCUT_EXPRESSION = "";
     private  static   final String POINTCUT_EXPRESSION_1 = POINTCUT_EXPRESSION;
 
-    public RetrofitRequiredHeadersEnforcerAspect(String pointcutExpression){
-        POINTCUT_EXPRESSION = pointcutExpression;
+    public RetrofitRequiredHeadersEnforcerAspect(){
         this.headersToCheckFor = new HashSet<>();
         foundHeaders = new HashMap<>();
     }
