@@ -36,7 +36,7 @@ public class BasecomponentsApplication {
 
 	}
 	//public static void main(String[] args) throws Throwable {
-	public static void themain(String[] args) throws Throwable {
+	public static void main(String[] args) throws Throwable {
 		//Uncommment to run
 		SpringApplication.run(BasecomponentsApplication.class, args);
 
