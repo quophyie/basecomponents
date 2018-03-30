@@ -122,13 +122,14 @@ public class RetrofitRequiredHeadersEnforcerAspect {
             ")")*/
     //com.quantal..services.api.*+.*(..)
     //execution(* com.quantal.javashared.aspects.IEnforceRequiredHeaders.*+.*(..))
-    @Pointcut("execution(* com.quantal..services.api.*+.*(..)) && " +
+   /* @Pointcut("(execution(* com.quantal..services.api.*+.*(..)) )&& " +
             "(" +
             //"target(com.quantal..services.api.*+)" +
            //"|| this(com.quantal..services.api.*+)"+
             " within(com.quantal..services.api..*+)"+
             "|| @target(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
             "|| @within(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
-            "|| @annotation(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders))")
+            "|| @annotation(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders))")*/
+    @Pointcut("(execution(retrofit2.OkHttpCall.new(..)) || execution(* retrofit2.adapter.java8.Java8CallAdapterFactory..*.adapt(..)) )")
     public void allRetrofitInterfaces(){}
 }
