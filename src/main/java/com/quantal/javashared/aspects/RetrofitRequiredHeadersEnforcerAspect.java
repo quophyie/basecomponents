@@ -130,6 +130,10 @@ public class RetrofitRequiredHeadersEnforcerAspect {
             "|| @target(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
             "|| @within(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders)" +
             "|| @annotation(com.quantal.javashared.annotations.requestheaders.EnforceRequiredHeaders))")*/
-    @Pointcut("(execution(retrofit2.OkHttpCall.new(..)) || execution(* retrofit2.adapter.java8.Java8CallAdapterFactory..*.adapt(..)) )")
+    @Pointcut("(execution(retrofit2.OkHttpCall.new(..)) " +
+            "|| execution(* retrofit2.adapter.java8.Java8CallAdapterFactory..*.adapt(..)) " +
+            "|| execution(* retrofit2.adapter.java8..*.adapt(..)) " +
+            "|| execution(* retrofit2.adapter.java8..*.*(..))" +
+            ")")
     public void allRetrofitInterfaces(){}
 }
