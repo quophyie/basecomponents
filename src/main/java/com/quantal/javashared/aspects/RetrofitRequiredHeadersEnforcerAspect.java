@@ -134,6 +134,7 @@ public class RetrofitRequiredHeadersEnforcerAspect {
             "|| execution(* retrofit2.adapter.java8.Java8CallAdapterFactory..*.adapt(..)) " +
             "|| execution(* retrofit2.adapter.java8..*.adapt(..)) " +
             "|| execution(* retrofit2.adapter.java8..*.*(..))" +
+            "|| execution(* retrofit2.adapter..*.*(..))" +
             ")")
     public void allRetrofitInterfaces(){}
 }
