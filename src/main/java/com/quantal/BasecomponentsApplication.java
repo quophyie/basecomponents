@@ -1,6 +1,6 @@
 package com.quantal;
 
-import com.quantal.javashared.aspects.RetrofitRequiredHeadersEnforcerAspect;
+import com.quantal.javashared.aspects.RetrofitRequiredHeadersEnforcerAspectJAspect;
 import com.quantal.javashared.dto.CommonLogFields;
 import com.quantal.javashared.dto.LogEvent;
 import com.quantal.javashared.dto.LogField;
@@ -12,14 +12,11 @@ import com.quantal.javashared.logger.QuantalLoggerFactory;
 import net.logstash.logback.marker.ObjectAppendingMarker;
 import org.slf4j.MDC;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import static com.quantal.javashared.constants.CommonConstants.EVENT_KEY;
 import static com.quantal.javashared.constants.CommonConstants.SUB_EVENT_KEY;
@@ -30,8 +27,8 @@ import static com.quantal.javashared.constants.CommonConstants.TRACE_ID_MDC_KEY;
 public class BasecomponentsApplication {
 
 	@Bean
-	public RetrofitRequiredHeadersEnforcerAspect requestHeadersAspect(){
-		RetrofitRequiredHeadersEnforcerAspect requestHeadersAspect = new RetrofitRequiredHeadersEnforcerAspect();
+	public RetrofitRequiredHeadersEnforcerAspectJAspect requestHeadersAspect(){
+		RetrofitRequiredHeadersEnforcerAspectJAspect requestHeadersAspect = new RetrofitRequiredHeadersEnforcerAspectJAspect();
 		return  requestHeadersAspect;
 
 	}
