@@ -31,11 +31,11 @@ import static com.quantal.javashared.constants.CommonConstants.TRACE_ID_MDC_KEY;
 
 //@Component
 //@Configurable
-public class LoggingFilter extends GenericFilterBean {
+public class EventAndTraceIdMdcPopulatingFilter extends GenericFilterBean {
 
 
     /**
-     * Logging todo o request da aplicação para auditoria
+     * Populates Mdc with event and traceId
      */
 
     @InjectLogger
@@ -82,6 +82,6 @@ public class LoggingFilter extends GenericFilterBean {
     public void destroy() {
         logger.with(EVENT_KEY, "FILTER_DESTROY")
                 .with(TRACE_ID_MDC_KEY, generateTraceId())
-                .warn("Destroying LoggingFilter ...");
+                .warn("Destroying EventAndTraceIdMdcPopulatingFilter ...");
     }
 }
