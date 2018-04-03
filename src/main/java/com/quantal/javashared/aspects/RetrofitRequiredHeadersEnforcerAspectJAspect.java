@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.annotation.AnnotationUtils;
 import retrofit2.http.Header;
@@ -31,7 +32,8 @@ import static java.util.stream.Collectors.joining;
  * in methods defined as {@code Retrofit} service headers
  */
 @Aspect
-@Configurable
+//@Configurable
+@Configurable(autowire= Autowire.BY_TYPE,dependencyCheck=true, preConstruction=true)
 public class RetrofitRequiredHeadersEnforcerAspectJAspect {
 
     private final Set<String> defaultHeadersToCheckFor;
@@ -130,9 +132,13 @@ public class RetrofitRequiredHeadersEnforcerAspectJAspect {
             if (!bReplaceDefaults) {
                 requiredheaders.addAll(defaultHeadersToCheckFor);
             }
-
             foundHeaders = new HashMap<>();
             requiredheaders.forEach((entry)-> this.foundHeaders.put(entry.toUpperCase(), false));
+
+        } else {
+            // If we cant find EnforceRequiredHeaders on the class we can just skip the method as the join point is not
+            // interest to us
+            return pjp.proceed();
         }
 
 
