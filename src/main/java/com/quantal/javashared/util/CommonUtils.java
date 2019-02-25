@@ -3,13 +3,19 @@ package com.quantal.javashared.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Created by dman on 29/04/2017.
  */
 public class CommonUtils {
+    public static final String REST_ENDPOINT_PATTERN = "((http|https)://){0,1}[a-zA-Z0-9.]*([:]{1}\\d{1,6}){0,1}%s[/]{0,1}[A-Za-z0-9/.]*";
+    public static final String HOST_PATTERN = "((http|https)://){0,1}[a-zA-Z0-9.]*([:]{1}\\d{1,6}){0,1}";
 
     /**
      * Returns the result  of a completion stage (ie. a completable future)
@@ -135,6 +141,54 @@ public class CommonUtils {
         if (jsonView != null)
             return mapper.writerWithView(jsonView).writeValueAsString(object);
         return mapper.writeValueAsString(object);
+    }
+
+    /**
+     * This method determines whether a call to the supplied endpoint will require the required propagated headers (by default X-EVENT
+     * and X-TraceId).
+     * Returns true if the supplied endpoint is a match for any of the regex patterns in the list
+     * of serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns list.
+     * A match will mean that the call to the supplied endpoint will not require the mandatory headers
+     *
+     * @param endpoint - The endpoint that the will be tested against the patterns in the serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns list
+     *                 to determine whether it will require the mandatory headers propagated to other microservices
+     *
+     *
+     * @param serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns - A list containing endpoints regex patterns which the endpoint
+     *                                                                      will be tested against to determine if there is a match
+     *
+     *
+     *
+     * @return true if the supplied endpoint requires the mandatory propagated headers (by default X-EVENT and X-TraceId), and false otherwise
+     */
+    public static boolean isMandatoryPropagatedHeadersNotRequired(final String endpoint,
+                                                                  final List<String> serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns
+    ){
+
+
+        if (serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns != null){
+            long numServiceEndpointsNotRequiringPropagatedRequiredHeaders =
+                    serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns
+                            .stream()
+                            .map(nonPropReqHeadPatt -> nonPropReqHeadPatt.replace(HOST_PATTERN, ""))
+                            .map(nonPropReqHeadPatt -> String.format(REST_ENDPOINT_PATTERN, nonPropReqHeadPatt))
+                            .map(Pattern::compile)
+                            .flatMap(compiledPattern -> Stream.of(new AbstractMap.SimpleEntry(endpoint, compiledPattern)))
+                            .filter(simpleEntry ->  isEndpointMatch((String) simpleEntry.getKey(), (Pattern) simpleEntry.getValue()))
+                            .count();
+
+            return numServiceEndpointsNotRequiringPropagatedRequiredHeaders > 0;
+        }
+
+        return false;
+    }
+
+    private static boolean isEndpointMatch(String endpoint, Pattern pattern){
+
+        if (pattern == null || endpoint == null) {
+            return false;
+        }
+        return pattern.matcher(endpoint).matches();
     }
 
 }

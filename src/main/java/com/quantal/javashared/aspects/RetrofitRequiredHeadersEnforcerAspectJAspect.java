@@ -33,16 +33,16 @@ import static java.util.stream.Collectors.joining;
  */
 @Aspect
 //@Configurable
-@Configurable(autowire= Autowire.BY_TYPE,dependencyCheck=true, preConstruction=true)
+@Configurable(autowire= Autowire.BY_TYPE, dependencyCheck=true, preConstruction=true)
 public class RetrofitRequiredHeadersEnforcerAspectJAspect {
 
     private final Set<String> defaultHeadersToCheckFor;
-    private final Set<String> apiServiesPackagesRegexPatterns;
+    private final Set<String> apiServicesPackagesRegexPatterns;
     private Map<String, Boolean> foundHeaders;
 
     public RetrofitRequiredHeadersEnforcerAspectJAspect(){
-        this.apiServiesPackagesRegexPatterns = new HashSet<>();
-        apiServiesPackagesRegexPatterns.add("com.quantal.*");
+        this.apiServicesPackagesRegexPatterns = new HashSet<>();
+        apiServicesPackagesRegexPatterns.add("com.quantal.*");
         this.defaultHeadersToCheckFor = new HashSet<>();
         this.foundHeaders = new HashMap<>();
     }
@@ -52,13 +52,13 @@ public class RetrofitRequiredHeadersEnforcerAspectJAspect {
      * @param defaultHeadersToCheckFor Set - defines the names of headers that are required on a {@code Retrofit} service / api method parameters
      *                          when {@code EnforceRequiredHeaders} annotation is declared on the  {@code Retrofit} service / api method
      *                          or the {@code EnforceRequiredHeaders} annotation is declared on the  {@code Retrofit} service / api class
-     * @param apiServiesPackagesRegexPatterns Set - a set of regex patterns that describes the packages that contain the
+     * @param apiServicesPackagesRegexPatterns Set - a set of regex patterns that describes the packages that contain the
      *                                         {@code Retrofit} service / api methods
      */
-    public RetrofitRequiredHeadersEnforcerAspectJAspect(Set<String> defaultHeadersToCheckFor, Set<String> apiServiesPackagesRegexPatterns){
+    public RetrofitRequiredHeadersEnforcerAspectJAspect(Set<String> defaultHeadersToCheckFor, Set<String> apiServicesPackagesRegexPatterns){
 
         this.defaultHeadersToCheckFor = defaultHeadersToCheckFor;
-        this.apiServiesPackagesRegexPatterns = apiServiesPackagesRegexPatterns;
+        this.apiServicesPackagesRegexPatterns = apiServicesPackagesRegexPatterns;
         foundHeaders = new HashMap<>();
         if (defaultHeadersToCheckFor != null){
             defaultHeadersToCheckFor.forEach( header ->foundHeaders.put(header.toUpperCase(), false));
@@ -75,8 +75,8 @@ public class RetrofitRequiredHeadersEnforcerAspectJAspect {
                 .filter(arg -> {
                     if (arg instanceof Method){
                         // Check whether the retrofit invoked method is one
-                        // an api method call defined in our apiServiesPackagesRegexPatterns set
-                    return apiServiesPackagesRegexPatterns.stream()
+                        // an api method call defined in our apiServicesPackagesRegexPatterns set
+                    return apiServicesPackagesRegexPatterns.stream()
                             .filter(apiPackageNamePattern ->
                                         Pattern.compile(apiPackageNamePattern)
                                         .matcher(((Method)arg).getDeclaringClass().getName())

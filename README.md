@@ -180,10 +180,10 @@ CommonLogFields commonLogFields =  new CommonLogFields();
   i.e. the default no-arg constructor and a second constructor that takes two parameters. 
   With regards to the constructor taking two paramters, the parameters are 
   - **`Set<String> defaultHeadersToCheckFor`** - This contains the names of headers that will be used as default header names to check for
-  - **`Set<String> apiServiesPackagesRegexPatterns`** - Regexes matching package names of **`Retrofit`** service / api methods 
+  - **`Set<String> apiServicesPackagesRegexPatterns`** - Regexes matching package names of **`Retrofit`** service / api methods 
   
   When the default **`no arg`** constructor is used, **`defaultHeadersToCheckFor`** will have values  **`X-TraceId`** and **`X-Event` as the default headers
-  and **`apiServiesPackagesRegexPatterns`** will the value **`"com.quantal.*"`** to match the **`Retrofit`** service / api package names  
+  and **`apiServicesPackagesRegexPatterns`** will the value **`"com.quantal.*"`** to match the **`Retrofit`** service / api package names  
   
   The **`RetrofitRequiredHeadersEnforcerAspectJAspect`** works by advising **`Retrofit`** jdk dynamics proxies to enable the required behaviour.
   This means that  **`RetrofitRequiredHeadersEnforcerAspectJAspect`** must be woven into the  **`Retrofit`** classes
