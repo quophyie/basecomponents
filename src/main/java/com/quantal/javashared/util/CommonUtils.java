@@ -144,51 +144,51 @@ public class CommonUtils {
     }
 
     /**
-     * This method determines whether a call to the supplied endpoint will require the required propagated headers (by default X-EVENT
+     * This method determines whether a call to the supplied endpoint will require the mandatory propagated headers (by default X-EVENT
      * and X-TraceId).
-     * Returns true if the supplied endpoint is a match for any of the regex patterns in the list
+     * Returns true if the supplied endpoint is not a match for any of the regex patterns in the list
      * of serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns list.
-     * A match will mean that the call to the supplied endpoint will not require the mandatory headers
+     * A no match will mean that the call to the supplied endpoint will  require the mandatory headers
      *
      * @param endpoint - The endpoint that the will be tested against the patterns in the serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns list
      *                 to determine whether it will require the mandatory headers propagated to other microservices
      *
      *
      * @param serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns - A list containing endpoints regex patterns which the endpoint
-     *                                                                      will be tested against to determine if there is a match
+     *                                                                      will be tested against to determine if there is a match or not
      *
      *
      *
      * @return true if the supplied endpoint requires the mandatory propagated headers (by default X-EVENT and X-TraceId), and false otherwise
      */
-    public static boolean isMandatoryPropagatedHeadersNotRequired(final String endpoint,
-                                                                  final List<String> serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns
+    public static boolean isMandatoryPropagatedHeadersRequiredToCallEndpoint(final String endpoint,
+                                                                             final List<String> serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns
     ){
 
 
         if (serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns != null){
-            long numServiceEndpointsNotRequiringPropagatedRequiredHeaders =
+            long numServiceEndpointsRequiringMandatoryPropagatedHeaders =
                     serviceEndpointsNotRequiringMandatoryPropagatedHeadersPatterns
                             .stream()
                             .map(nonPropReqHeadPatt -> nonPropReqHeadPatt.replace(HOST_PATTERN, ""))
                             .map(nonPropReqHeadPatt -> String.format(REST_ENDPOINT_PATTERN, nonPropReqHeadPatt))
                             .map(Pattern::compile)
                             .flatMap(compiledPattern -> Stream.of(new AbstractMap.SimpleEntry(endpoint, compiledPattern)))
-                            .filter(simpleEntry ->  isEndpointMatch((String) simpleEntry.getKey(), (Pattern) simpleEntry.getValue()))
+                            .filter(simpleEntry ->  isEndpointNotMatched((String) simpleEntry.getKey(), (Pattern) simpleEntry.getValue()))
                             .count();
 
-            return numServiceEndpointsNotRequiringPropagatedRequiredHeaders > 0;
+            return numServiceEndpointsRequiringMandatoryPropagatedHeaders > 0;
         }
 
         return false;
     }
 
-    private static boolean isEndpointMatch(String endpoint, Pattern pattern){
+    private static boolean isEndpointNotMatched(String endpoint, Pattern pattern){
 
         if (pattern == null || endpoint == null) {
-            return false;
+            return true;
         }
-        return pattern.matcher(endpoint).matches();
+        return !pattern.matcher(endpoint).matches();
     }
 
 }
