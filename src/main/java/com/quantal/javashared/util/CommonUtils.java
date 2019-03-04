@@ -1,14 +1,23 @@
 package com.quantal.javashared.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quantal.javashared.dto.LogField;
+import com.quantal.javashared.dto.ThreadDetails;
+import com.quantal.javashared.filters.EventAndTraceIdMdcPopulatingFilter;
+import org.slf4j.MDC;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import static com.quantal.javashared.constants.CommonConstants.EVENT_KEY;
+import static com.quantal.javashared.constants.CommonConstants.TRACE_ID_MDC_KEY;
 
 /**
  * Created by dman on 29/04/2017.
@@ -182,6 +191,47 @@ public class CommonUtils {
 
         return false;
     }
+
+    /**
+     * Will update the MDC with the traceId and event if they are missing from the MDC
+     * The traceId and event are usually missing when the a CompletionStageException (i.e. CompletableFutureException)
+     * is handled on a different thread other than the calling thread i.e. the thread that generated the exception
+     * @param ex
+     */
+    public static void tryUpdateMDCWithEventAndTraceIdIfMissingFromMDC(final Throwable ex,
+                                                              final EventAndTraceIdMdcPopulatingFilter eventAndTraceIdMdcPopulatingFilter){
+
+        if(MDC.get(TRACE_ID_MDC_KEY) == null) {
+            String traceId = eventAndTraceIdMdcPopulatingFilter.getEventAndTraceIdMap().get().get(TRACE_ID_MDC_KEY);
+            MDC.put(TRACE_ID_MDC_KEY, traceId);
+        }
+
+        if (MDC.get(EVENT_KEY) == null) {
+            String event;
+            if (ex.getCause() != null){
+                event = ex.getCause().getClass().getSimpleName().toUpperCase();
+
+            } else {
+                event = ex.getClass().getSimpleName().toUpperCase();
+            }
+            MDC.put(EVENT_KEY, event);
+        }
+    }
+
+    public static <T> DeferredResult<T> from(final CompletableFuture<T> future) {
+        final DeferredResult<T> deferred = new DeferredResult<>();
+        future.thenAccept(deferred::setResult);
+        future.exceptionally(ex -> {
+            if (ex instanceof CompletionException) {
+                deferred.setErrorResult(ex.getCause());
+            } else {
+                deferred.setErrorResult(ex);
+            }
+            return null;
+        });
+        return deferred;
+    }
+
 
     private static boolean isEndpointNotMatched(String endpoint, Pattern pattern){
 

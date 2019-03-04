@@ -13,6 +13,7 @@ public class CommonConstants {
     public static final String USER_ID_KEY = "userId";
     public static final String EMAIL_KEY = "email";
     public static final String REQUEST_KEY = "request";
-    public static final String RESPONSE_KEY = "request";
+    public static final String RESPONSE_KEY = "response";
+
     private CommonConstants(){}
 }

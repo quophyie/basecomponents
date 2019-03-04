@@ -5,6 +5,7 @@ import com.godaddy.logging.LoggingConfigs;
 import com.quantal.javashared.dto.CommonLogFields;
 import com.quantal.javashared.dto.LoggerConfig;
 import com.quantal.javashared.dto.LogzioConfig;
+import io.logz.sender.exceptions.LogzioParameterErrorException;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ReflectionUtils;
 
@@ -29,28 +30,40 @@ public class QuantalLoggerFactory {
         }
         Logger logger =   loggerConfig.getGoDadayLoggerConfig().getCurrent().getDefaultLogger(clazz);
         logger = standardizeLogLine(logger, loggerConfig.getCommonLogFields());
-        QuantalLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, LoggingConfigs.getCurrent());
-        quantalGoDaddyLogger.setCommonFields(loggerConfig.getCommonLogFields());
+        QuantalLogger quantalGoDaddyLogger = null;
+        try {
+            quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, LoggingConfigs.getCurrent());
+            quantalGoDaddyLogger.setCommonFields(loggerConfig.getCommonLogFields());
+        } catch (LogzioParameterErrorException lpe) {
+            throw new RuntimeException(lpe);
+        }
         return quantalGoDaddyLogger;
     }
     //public static QuantalLogger getLogzioLogger(Class<?> clazz, CommonLogFields commonLogFields, LoggingConfigs configs, LogzioConfig logzioConfig) {
     public static QuantalLogger getLogzioLogger(Class<?> clazz, LoggerConfig loggerConfig) {
 
-        if (loggerConfig.getGoDadayLoggerConfig() == null ){
+        if (loggerConfig.getGoDadayLoggerConfig() == null) {
             loggerConfig.setGoDadayLoggerConfig(LoggingConfigs.getCurrent());
             loggerConfig.setGoDadayLoggerConfig(loggerConfig.getGoDadayLoggerConfig().withRecursiveLevel(RECURSIVE_LEVEL));
         }
-        Logger logger =  loggerConfig.getGoDadayLoggerConfig().getConfiguredLogger(clazz, loggerConfig.getGoDadayLoggerConfig());
+        Logger logger = loggerConfig.getGoDadayLoggerConfig().getConfiguredLogger(clazz, loggerConfig.getGoDadayLoggerConfig());
         logger = standardizeLogLine(logger, loggerConfig.getCommonLogFields());
-        QuantalLogger quantalGoDaddyLogger= new QuantalGoDaddyLoggerImpl(logger, loggerConfig);
-        quantalGoDaddyLogger.setCommonFields(loggerConfig.getCommonLogFields());
+        QuantalLogger quantalGoDaddyLogger = null;
+        try {
+            quantalGoDaddyLogger = new QuantalGoDaddyLoggerImpl(logger, loggerConfig);
+            quantalGoDaddyLogger.setCommonFields(loggerConfig.getCommonLogFields());
+        } catch (LogzioParameterErrorException lpe) {
+            throw new RuntimeException(lpe);
+        }
         return quantalGoDaddyLogger;
     }
 
-    public static LogzioConfig createDefaultLogzioConfig(String logzioToken, Optional<Boolean> showDebugInfo, Optional<ScheduledExecutorService> tasksExecutor){
+    public static LogzioConfig createDefaultLogzioConfig(String logzioToken, Optional<Boolean> showDebugInfo, Optional<ScheduledExecutorService> tasksExecutor) {
+
+
         return new LogzioConfig(
                 logzioToken,
-                "java",
+                "javaSenderType",
                 5,
                 98,
                 new File("logzio/buffer"),
@@ -59,8 +72,9 @@ public class QuantalLoggerFactory {
                 10 * 1000,
                 showDebugInfo.orElse(false),
                 new LogzioStatusReporter(LoggerFactory.getLogger(LogzioStatusReporter.class)),
-                tasksExecutor.orElse(Executors.newScheduledThreadPool(2)),
-                30
+                tasksExecutor.orElse(Executors.newScheduledThreadPool(3)),
+                30,
+                true
         );
     }
 

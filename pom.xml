@@ -24,7 +24,7 @@
 		<dependency>
 			<groupId>io.logz.sender</groupId>
 			<artifactId>logzio-sender</artifactId>
-			<version>1.0.7</version>
+			<version>1.0.18</version>
 		</dependency>
 
 	<!-- Orika object to object mapper -->

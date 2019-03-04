@@ -22,6 +22,7 @@ public class LogzioConfig {
     private SenderStatusReporter reporter;
     private ScheduledExecutorService tasksExecutor;
     private int gcPersistedQueueFilesIntervalSeconds;
+    private boolean inMemory;
 
     public LogzioConfig(){}
 }

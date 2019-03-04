@@ -32,6 +32,10 @@ public class LoggerConfig {
     // will be added as one of the ELK/logz.io fields but their values will be set to null
     @Builder.Default
     private boolean addMissingFieldsToElkLogs= true;
+
+    //If true, the thread details of the currently executing such as the threadId, threadName and thread group will be added
+    @Builder.Default
+    private boolean includeThreadDetails= true;
     public LoggerConfig(){
 
     }

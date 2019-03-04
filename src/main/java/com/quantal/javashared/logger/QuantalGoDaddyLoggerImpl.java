@@ -12,7 +12,9 @@ import com.quantal.javashared.dto.LogEvent;
 import com.quantal.javashared.dto.LogField;
 import com.quantal.javashared.dto.LoggerConfig;
 import com.quantal.javashared.dto.LogzioConfig;
+import com.quantal.javashared.dto.ThreadDetails;
 import com.quantal.javashared.exceptions.LogFieldNotSuppliedException;
+import io.logz.sender.HttpsRequestConfiguration;
 import io.logz.sender.LogzioSender;
 import io.logz.sender.com.google.gson.JsonNull;
 import io.logz.sender.com.google.gson.JsonObject;
@@ -20,6 +22,7 @@ import io.logz.sender.exceptions.LogzioParameterErrorException;
 import ma.glasnost.orika.MapperFacade;
 import ma.glasnost.orika.MapperFactory;
 import ma.glasnost.orika.impl.DefaultMapperFactory;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
@@ -35,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executors;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,7 +75,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
     private CommonLogFields commonLogFields;
 
 
-    public QuantalGoDaddyLoggerImpl(Logger root, LoggerConfig loggerConfig) {
+    public QuantalGoDaddyLoggerImpl(Logger root, LoggerConfig loggerConfig) throws LogzioParameterErrorException {
         super(root, loggerConfig.getGoDadayLoggerConfig());
         LogzioConfig logzioConfig = loggerConfig.getLogzioConfig();
         this.configs = loggerConfig.getGoDadayLoggerConfig();
@@ -91,7 +95,45 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
         }
 
         if(bSendToLogzio) {
+            final LogzioStatusReporter logzioStatusReporter = new LogzioStatusReporter(LoggerFactory.getLogger(LogzioStatusReporter.class));
+            final HttpsRequestConfiguration httpsRequestConfiguration = HttpsRequestConfiguration
+                    .builder()
+                    .setLogzioListenerUrl(logzioConfig.getLogzioUrl())
+                    .setLogzioType(logzioConfig.getLogzioType())
+                    .setLogzioToken(logzioConfig.getLogzioToken())
+                    .setSocketTimeout(logzioConfig.getSocketTimeout())
+                    .setConnectTimeout(logzioConfig.getConnectTimeout())
+                    .build();
             try {
+
+                if (logzioConfig.isInMemory()) {
+                    // 2) in memory queue example
+                    sender = LogzioSender
+                            .builder()
+                            .setTasksExecutor(logzioConfig.getTasksExecutor())
+                            .setDrainTimeoutSec(logzioConfig.getDrainTimeout())
+                            .setReporter(logzioStatusReporter)
+                            .setHttpsRequestConfiguration(httpsRequestConfiguration)
+                            .withInMemoryQueue()
+                            .endInMemoryQueue()
+                            .setDebug(logzioConfig.isDebug())
+                            .build();
+                } else {
+
+                    sender = LogzioSender
+                            .builder()
+                            .setTasksExecutor(logzioConfig.getTasksExecutor())
+                            .setReporter(logzioStatusReporter)
+                            .setHttpsRequestConfiguration(httpsRequestConfiguration)
+                            .withDiskQueue()
+                            .setQueueDir(logzioConfig.getBufferDir())
+                            .endDiskQueue()
+                            .setDebug(logzioConfig.isDebug())
+                            .build();
+
+                }
+
+                /*
                 sender = LogzioSender.getOrCreateSenderByType(logzioConfig.getLogzioToken(),
                         logzioConfig.getLogzioType(),
                         logzioConfig.getDrainTimeout(),
@@ -103,6 +145,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
                         logzioConfig.isDebug(),
                         logzioConfig.getReporter(), logzioConfig.getTasksExecutor(),
                         logzioConfig.getGcPersistedQueueFilesIntervalSeconds());
+                */
                 sender.start();
             } catch (LogzioParameterErrorException e) {
                 root.error(e.getMessage(), e);
@@ -111,7 +154,7 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
         }
     }
 
-    public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs) {
+    public QuantalGoDaddyLoggerImpl(Logger root, LoggingConfigs configs) throws LogzioParameterErrorException {
         this(root, new LoggerConfig()
                         .builder()
                         .goDadayLoggerConfig( configs)
@@ -144,7 +187,12 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
 
 
         Logger logger = new AnnotatingLogger(this.root, this, obj, configs);
-        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger, dataMap, this.commonFieldsMap);
+        QuantalLogger quantalLogger = null;
+        try {
+            quantalLogger = createImmutableQuantalGoDaddyLogger(logger, dataMap, this.commonFieldsMap);
+        } catch (LogzioParameterErrorException lpe) {
+            throw new RuntimeException(lpe);
+        }
         return quantalLogger;
     }
 
@@ -177,7 +225,12 @@ public class QuantalGoDaddyLoggerImpl extends LoggerImpl implements QuantalLogge
         });
 
         Logger logger = super.with(key, value);
-        QuantalLogger quantalLogger = createImmutableQuantalGoDaddyLogger(logger,  dataMap, this.commonFieldsMap);
+        QuantalLogger quantalLogger = null;
+        try {
+            quantalLogger = createImmutableQuantalGoDaddyLogger(logger,  dataMap, this.commonFieldsMap);
+        } catch (LogzioParameterErrorException lpe) {
+           throw new RuntimeException(lpe);
+        }
         return quantalLogger;
     }
 
@@ -623,6 +676,9 @@ public void info(String msg) {
             return;
         }
 
+        if (loggerConfig.isIncludeThreadDetails()){
+            addThreadDetails();
+        }
         //LogEvent event = (LogEvent) tryGetLogField(args, CommonConstants.EVENT_KEY);
         //LogTraceId traceId = (LogTraceId) tryGetLogField(args, CommonConstants.TRACE_ID_MDC_KEY);
         LogEvent subEvent = tryGetSubEvent(args);
@@ -664,7 +720,8 @@ public void info(String msg) {
         String key = obj.getClass().getSimpleName();
 
         if(obj instanceof LogField) {
-            dataMap.putIfAbsent(((LogField) obj).getKey(), ((LogField)obj).getValue());
+            dataMap.put(((LogField) obj).getKey(), ((LogField) obj).getValue());
+
         }
         else if(!dataMap.containsKey(key)){
             Matcher matcher =  Pattern.compile("\\d*$").matcher(key);
@@ -675,6 +732,16 @@ public void info(String msg) {
                 dataMap.put(key.concat(newKey), obj);
             }
         }
+    }
+
+    /**
+     * Adds the thread details to the logzioJsonDataMap and in essence logz.io
+     */
+    private void addThreadDetails(){
+        final ThreadDetails threadDetails = ThreadDetails.builder().build();
+        this.logzioJsonDataMap.put("threadId", threadDetails.getThreadId());
+        this.logzioJsonDataMap.put("threadName", threadDetails.getThreadName());
+        this.logzioJsonDataMap.put("threadGroup", threadDetails.getThreadGroup());
     }
 
     /**
@@ -762,7 +829,7 @@ public void info(String msg) {
                 });
     }
 
-    private QuantalLogger createImmutableQuantalGoDaddyLogger(Logger logger, Map<String, Object> dataMap, Map<String, Object> commonFieldsMap){
+    private QuantalLogger createImmutableQuantalGoDaddyLogger(Logger logger, Map<String, Object> dataMap, Map<String, Object> commonFieldsMap) throws LogzioParameterErrorException {
         QuantalLogger quantalLogger =  new QuantalGoDaddyLoggerImpl(logger, this.loggerConfig);
         ((QuantalGoDaddyLoggerImpl)quantalLogger).setCommonFieldsMap(commonFieldsMap);
         ((QuantalGoDaddyLoggerImpl)quantalLogger).setDataMap(dataMap);
@@ -772,6 +839,9 @@ public void info(String msg) {
     /**
      * Special case method that tries to find the a subEvent in
      * one of log methods args, MDC or dataMap
+     * NOTE: When searching for a log field, the search order is as follows
+     * Search this.logzioJsonDataMap first, then this.jsonMessage, args and finally MDC i.e. MDC has
+     * the lowest precedence
      * @param args
      * @return
      */
@@ -785,7 +855,7 @@ public void info(String msg) {
         if (args != null ) {
              subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) &&
                      ((LogEvent) arg).getEvent()!= null
-                     && ((LogEvent) arg).getEvent().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
+                     && ((LogEvent) arg).getKey().equalsIgnoreCase(CommonConstants.SUB_EVENT_KEY)).findAny().orElse(null);
             /*if(subEvent == null){
                 if(this.logzioJsonDataMap != null && !this.logzioJsonDataMap.isEmpty()){
                     subEvent = this.logzioJsonDataMap.get(EVENT_KEY);
@@ -794,10 +864,30 @@ public void info(String msg) {
                 }
             }*/
 
+            // We didnt find a subEvent in the args so we try and find an an event LogEvent and set the subEvent
+            // as an event.. This LogField event supercedes the event found in the MDC (i.e. it has higher precedence)
+            if (subEvent == null){
+                subEvent = args.stream().filter(arg -> (arg instanceof LogEvent) &&
+                        ((LogEvent) arg).getEvent()!= null
+                        && ((LogEvent) arg).getKey().equalsIgnoreCase(CommonConstants.EVENT_KEY)).findAny().orElse(null);
+
+            }
+
         }
 
+        //try we cant find the subEvent in logzioJsonDataMap, this.jsonMessage and args, we set the subEvent
+        //to the event by searching for the event in the following order or precedence
+        // Search this.logzioJsonDataMap first, then  this.jsonMessage and finally MDC i.e. MDC has
+        // the lowest precedence
         // If we still cant find the sub event, try and find it in the MDC
-        if (subEvent == null) {
+
+        if (this.jsonMessage.get(EVENT_KEY) != null){
+            return new LogEvent(this.jsonMessage.get(EVENT_KEY).toString());}
+
+        else  if (this.logzioJsonDataMap.get(EVENT_KEY) != null) {
+            return new LogEvent(this.logzioJsonDataMap.get(EVENT_KEY).toString());
+        }
+        else if (subEvent == null) {
             subEvent = MDC.get(EVENT_KEY);
         }
         // Return th
@@ -806,18 +896,17 @@ public void info(String msg) {
                 return  null;
             if (subEvent !=null)
                 return (LogEvent) subEvent;
-            if (this.jsonMessage.get(EVENT_KEY) != null)
-                return new LogEvent(this.jsonMessage.get(EVENT_KEY).toString());
-            else  if (this.logzioJsonDataMap.get(EVENT_KEY) != null)
-                return new LogEvent(this.logzioJsonDataMap.get(EVENT_KEY).toString());
         }
 
         return new LogEvent(subEvent.toString());
     }
 
     /**
-     * Tris to find the given logFieldName
+     * Tries to find the given logFieldName
      * one of log methods args, MDC or dataMap
+     * NOTE: When searching for a log field, the search order is as follows
+     * Search dataMap first, then this.jsonMessage, args and finally MDC i.e. MDC has
+     * the lowest precedence
      * @param args
      * @param logFieldName
      * @param dataMap
